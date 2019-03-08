@@ -3,7 +3,7 @@ var config = require('./config')
 var con = mysql.createConnection({
   host    : '127.0.0.1',
   user    : 'owenyhae_owen',
-  password: 'Roksa4123!cap',
+  password: ' ',
   database: 'owenyhae_capstone'
 });
 
@@ -20,7 +20,7 @@ var port = process.env.PORT || 8080;
 
 // POST http://localhost:8080/api/users
 
-// parameters sent with 
+// parameters sent with
 router.post('/postUsers', function(req, res) {
 
     var username = req.body.username;
@@ -30,8 +30,6 @@ router.post('/postUsers', function(req, res) {
 
     console.log('post ' + username);
     console.log('post ' + password);
-
-
 
      con.connect(function(err) {
        if (err) throw err;
@@ -48,7 +46,7 @@ router.post('/postUsers', function(req, res) {
 
 // routes will go here
 
-router.get('/getUsers', function(req, res) {  
+router.get('/getUsers', function(req, res) {
     res.json({password: "privacy"});
 
   });
