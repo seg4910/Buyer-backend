@@ -5,11 +5,13 @@ app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 app.use(express.json());
 
+var router = express.Router();
+
 var port = process.env.PORT || 8080;
 
 // POST http://localhost:8080/api/users
 // parameters sent with 
-app.post('/api/users', function(req, res) {
+router.post('/postUsers', function(req, res) {
     var username = req.body.username;
     var password = req.body.password;
 
@@ -20,15 +22,12 @@ app.post('/api/users', function(req, res) {
 });
 
 // routes will go here
-app.get('/api/users', function(req, res) {
-    var username = req.param('username');
-    var password = req.param('password');
-    
-    console.log(username);
-    console.log(password);
-  
-    res.send(username + ' ' + password);
+router.get('/getUsers', function(req, res) {  
+    res.json({password: "privacy"});
   });
+
+app.use('/api', router);
+
 
 // start the server
 app.listen(port);
