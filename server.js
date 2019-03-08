@@ -3,7 +3,7 @@ var config = require('./config')
 var con = mysql.createConnection({
   host    : '127.0.0.1',
   user    : 'owenyhae_owen',
-  password: ' ',
+  password: 'Roksa4123!cap',
   database: 'owenyhae_capstone'
 });
 
@@ -25,11 +25,12 @@ router.post('/postUsers', function(req, res) {
 
     var username = req.body.username;
     var password = req.body.password;
-    var email = 'owen.adley@gmail.com';
-    var type = '1';
+    var email = req.body.email;
+    var type = req.body.type;
 
     console.log('post ' + username);
     console.log('post ' + password);
+    console.log('post ' + email);
 
      con.connect(function(err) {
        if (err) throw err;
