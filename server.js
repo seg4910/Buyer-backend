@@ -46,7 +46,8 @@ router.post('/postUsers', function(req, res) {
     var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + username + "', '" + password + "', '" + email + "', '" + type + "')";
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log("1 record inserted");
+      console.log("1 user created");
+    //  alert("Account Created!");
     });
 
 });
@@ -58,15 +59,26 @@ router.get('/getEmailExists', function(req, res){
 
     connectDB();
 
-    var sql = "SELECT name FROM users WHERE email='" + email + "'";
+    var sql = "SELECT * FROM users WHERE email='" + email + "'";
+    console.log(sql);
     con.query(sql, function (err, result) {
       if (err) throw err;
-      res.json({
-        accountExists: result.length!=0,
-        firstName: result[0].name
-      });
+      console.log(result);
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("Account Found.");
+          res.json({
+            accountExists: 1,
+            firstName: result[0].name
+          });
+      } else {
+        console.log("No Account Found.");
+        res.json({
+          accountExists: 0,
+          firstName: ''
+        });
+      }
     });
-})
+});
 
 router.get('/signIn', function(req, res){
   var email = req.param('email');
@@ -84,7 +96,7 @@ router.get('/signIn', function(req, res){
       firstName: result[0].name
     });
   });
-})
+});
 
 
 
