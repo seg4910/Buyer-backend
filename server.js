@@ -1,9 +1,9 @@
 var mysql = require('mysql');
-var config = require('./config')
+//var config = require('./config')
 var con = mysql.createConnection({
   host    : '127.0.0.1',
-  user    : 'owenyhae_owen',
-  password: '',
+  user    : 'owenyhae',
+  password: 'Roksa4123!cp',
   database: 'owenyhae_capstone'
 });
 
@@ -17,6 +17,15 @@ app.use(express.json());
 var router = express.Router();
 
 var port = process.env.PORT || 8080;
+
+function connectDB(){
+  if(con.state==='disconnected'){
+    con.connect(function(err) {
+      if (err) throw err;
+      console.log("DB Connection Success");
+    });
+  }
+}
 
 // POST http://localhost:8080/api/users
 
@@ -32,29 +41,54 @@ router.post('/postUsers', function(req, res) {
     console.log('post ' + password);
     console.log('post ' + email);
 
-     con.connect(function(err) {
-       if (err) throw err;
-       console.log("Connected!");
-       //Insert a record in the "customers" table:
-       var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + username + "', '" + password + "', '" + email + "', '" + type + "')";
-       con.query(sql, function (err, result) {
-         if (err) throw err;
-         console.log("1 record inserted");
-       });
-     });
+    connectDB();
+
+    var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + username + "', '" + password + "', '" + email + "', '" + type + "')";
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log("1 record inserted");
+    });
 
 });
 
 // routes will go here
+router.get('/getEmailExists', function(req, res){
+    var email = req.param('email');
+    console.log("Received: " + email);
 
-router.get('/getUsers', function(req, res) {
-    res.json({password: "privacy"});
+    connectDB();
 
+    var sql = "SELECT name FROM users WHERE email='" + email + "'";
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      res.json({
+        accountExists: result.length!=0,
+        firstName: result[0].name
+      });
+    });
+})
+
+router.get('/signIn', function(req, res){
+  var email = req.param('email');
+  var password = req.param('password');
+  console.log("Received: " + email + ', ' + password);
+
+  connectDB();
+
+  var sql = "SELECT name, type FROM users WHERE email='" + email + "' AND password='" + password + "'";
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    res.json({
+      accountExists: result.length!=0,
+      type: result[0].type,
+      firstName: result[0].name
+    });
   });
+})
+
+
 
 app.use('/api', router);
-
-
 // start the server
 app.listen(port);
 console.log('Server started! At http://localhost:' + port);
