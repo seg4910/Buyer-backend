@@ -99,6 +99,33 @@ router.get('/signIn', function(req, res){
 });
 
 
+// routes will go here
+router.get('/getServicePreviews', function(req, res){
+    //var email = req.param('email');
+    //console.log("Received: " + email);
+    connectDB();
+
+
+
+    var sql = "SELECT * FROM services";
+    console.log(sql);
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log(result);
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("Services Found");
+          res.json({
+            servicePreviews: result
+          });
+      } else {
+        console.log("No Services Found");
+
+      }
+    });
+});
+
+
+
 
 app.use('/api', router);
 // start the server
