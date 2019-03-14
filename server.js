@@ -105,8 +105,6 @@ router.get('/getServicePreviews', function(req, res){
     //console.log("Received: " + email);
     connectDB();
 
-
-
     var sql = "SELECT * FROM services";
     console.log(sql);
     con.query(sql, function (err, result) {
@@ -124,7 +122,27 @@ router.get('/getServicePreviews', function(req, res){
     });
 });
 
+router.get('/getServiceInfo', function(req, res){
+    //var email = req.param('email');
+    //console.log("Received: " + email);
+    connectDB();
+    var id = req.param('service');
+    var sql = "SELECT * FROM services WHERE id=" + id;
+    console.log(sql);
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log(result);
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("Services Found");
+          res.json({
+            serviceInfo: result
+          });
+      } else {
+        console.log("No Services Found");
 
+      }
+    });
+});
 
 
 app.use('/api', router);
