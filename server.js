@@ -29,7 +29,7 @@ function connectDB(){
 
 // POST http://localhost:8080/api/users
 
-// parameters sent with
+// post user to db
 router.post('/postUsers', function(req, res) {
 
     var username = req.body.username;
@@ -49,8 +49,28 @@ router.post('/postUsers', function(req, res) {
       console.log("1 user created");
     //  alert("Account Created!");
     });
-
 });
+
+// post service to db
+router.post('/postService', function(req, res) {
+
+    var sellerId = req.body.sellerId;
+    var sellerName = req.body.sellerName;
+    var serviceName = req.body.serviceName;
+    var serviceDescription = req.body.serviceDescription;
+    var minPrice = req.body.minPrice;
+    var maxPrice = req.body.maxPrice;
+
+    connectDB();
+
+    var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceDescription,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceDescription + "', '" + minPrice +"', '" + maxPrice +"')";
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log("1 service created");
+    //  alert("Account Created!");
+    });
+});
+
 
 // routes will go here
 router.get('/getEmailExists', function(req, res){
@@ -87,13 +107,14 @@ router.get('/signIn', function(req, res){
 
   connectDB();
 
-  var sql = "SELECT name, type FROM users WHERE email='" + email + "' AND password='" + password + "'";
+  var sql = "SELECT id, name, type FROM users WHERE email='" + email + "' AND password='" + password + "'";
   con.query(sql, function (err, result) {
     if (err) throw err;
     res.json({
       accountExists: result.length!=0,
       type: result[0].type,
-      firstName: result[0].name
+      firstName: result[0].name,
+      id: result[0].id,
     });
   });
 });
