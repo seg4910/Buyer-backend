@@ -57,13 +57,14 @@ router.post('/postService', function(req, res) {
     var sellerId = req.body.sellerId;
     var sellerName = req.body.sellerName;
     var serviceName = req.body.serviceName;
+    var serviceCategory = req.body.serviceCategory;
     var serviceDescription = req.body.serviceDescription;
     var minPrice = req.body.minPrice;
     var maxPrice = req.body.maxPrice;
 
     connectDB();
 
-    var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceDescription,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceDescription + "', '" + minPrice +"', '" + maxPrice +"')";
+    var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceCategory + "', '" + serviceDescription + "', '" + minPrice +"', '" + maxPrice +"')";
     con.query(sql, function (err, result) {
       if (err) throw err;
       console.log("1 service created");
@@ -96,6 +97,31 @@ router.get('/getEmailExists', function(req, res){
           accountExists: 0,
           firstName: ''
         });
+      }
+    });
+});
+
+router.get('/getAccountInfo', function(req, res){
+    var id = req.param('id');
+    console.log("Received id: " + id);
+
+    connectDB();
+
+    var sql = "SELECT * FROM users WHERE id='" + id + "'";
+    console.log(sql);
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log(result);
+      console.log(result[0].name);
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("Account Found.");
+          res.json({
+            name: result[0].name,
+            email: result[0].email,
+            password: result[0].password,
+          });
+      } else {
+        console.log("No Account Found.");
       }
     });
 });
@@ -142,6 +168,34 @@ router.get('/getServicePreviews', function(req, res){
       }
     });
 });
+
+
+// routes will go here
+router.get('/getMyServicePreviews', function(req, res){
+    var id = req.param('id');
+    console.log("Received id: " + id);
+    connectDB();
+
+    var sql = "SELECT * FROM services WHERE sellerID='" + id + "'";
+    console.log(sql);
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log(result);
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("Services Found");
+          res.json({
+            servicePreviews: result,
+            serviceExists: 1,
+          });
+      } else {
+        console.log("No Services Found");
+        res.json({
+          serviceExists: 0,
+        });
+      }
+    });
+});
+
 
 router.get('/getServiceInfo', function(req, res){
     //var email = req.param('email');
