@@ -7,6 +7,7 @@ var con = mysql.createConnection({
   database: 'owenyhae_capstone'
 });
 
+var stripe = require("stripe")("sk_test_guejfZRO6qW0hAQ1ZZawcWLu00cENZq563");
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -27,7 +28,73 @@ function connectDB(){
   }
 }
 
-// POST http://localhost:8080/api/users
+// make purchase
+router.post('/purchaseService', function(req, res) {
+
+  stripe.charges.create({
+    amount: 2000,
+    currency: "cad",
+    source: "tok_amex", // obtained with Stripe.js
+    description: "Charge for jenny.rosen@example.com"
+  }, function(err, charge) {
+    // asynchronously called
+  });
+
+});
+
+// get stripe customer
+router.post('/newCardStripe', function(req, res) {
+
+  console.log('here1');
+  var cusID = req.param('id');
+  var token = req.param('token');
+  console.log(token);
+  console.log('here');
+  connectDB();
+  var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
+  var stripeCusId = '';
+
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    stripeCusId = result[0].stripeCusId;
+    console.log(token[0]);
+    stripe.customers.createSource(
+      stripeCusId,
+      { source: token },
+      function(err, card) {
+        console.log(card);// asynchronously called
+        console.log(err);
+      }
+    );
+  });
+});
+
+// get stripe customer
+router.get('/getStripeCustomer', function(req, res) {
+
+  var cusID = req.param('id');
+  //console.log(cusID);
+  //retreive a customer and their payment info from stripeCusId
+  connectDB();
+  var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
+  var stripeCusId = '';
+
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    stripeCusId = result[0].stripeCusId;
+    stripe.customers.retrieve(
+      stripeCusId,
+      function(err, customer) {
+        console.log(customer.sources.data);
+        res.json({
+          stripeCustomerCards: customer.sources.data
+        });
+      }
+    );
+  });
+});
+
+
 
 // post user to db
 router.post('/postUsers', function(req, res) {
@@ -43,11 +110,36 @@ router.post('/postUsers', function(req, res) {
 
     connectDB();
 
+    // post a new user to the database
     var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + username + "', '" + password + "', '" + email + "', '" + type + "')";
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log("1 user created");
-    //  alert("Account Created!");
+
+      // get the id of the newly registered user
+      var sql2 = "SELECT id FROM users WHERE email='"+ email +"'";
+      con.query(sql2, function (err, result2) {
+        if (err) throw err;
+
+        //create a customer within stripe for payments
+        console.log('attempting to create customer');
+        stripe.customers.create({
+          description: 'Customer for' + username,
+          email: email,
+          source: "tok_amex" // obtained with Stripe.js
+        }, function(err, customer) {
+          console.log(customer);
+          var cusStripeID = customer.id
+          var cusID = result2[0].id;
+
+          // update the user in the database to add their new stripe id
+           var sql = "UPDATE users SET stripeCusId ='" + cusStripeID + "' WHERE id='" + cusID + "'";
+           console.log(sql);
+           con.query(sql, function (err, result) {
+             if (err) throw err;
+             console.log('added stripe id');
+           });
+        });
+      });
     });
 });
 
@@ -89,7 +181,8 @@ router.get('/getEmailExists', function(req, res){
         console.log("Account Found.");
           res.json({
             accountExists: 1,
-            firstName: result[0].name
+            firstName: result[0].name,
+            id: result[0].id
           });
       } else {
         console.log("No Account Found.");
@@ -125,6 +218,7 @@ router.get('/getAccountInfo', function(req, res){
       }
     });
 });
+
 
 router.get('/signIn', function(req, res){
   var email = req.param('email');
