@@ -94,51 +94,71 @@ router.get('/getStripeCustomer', function(req, res) {
   });
 });
 
+// create location
+router.get('/createLocation', function(req, res){
+  var userId = req.param('userId');
+  var streetNumber = req.param('streetNumber');
+  var streetName = req.param('streetName');
+  var city = req.param('city');
+  var province = req.param('province');
+  var postalCode = req.param('postalCode');
 
+  connectDB();
 
-// post user to db
-router.post('/postUsers', function(req, res) {
+  console.log(userId);
 
-    var username = req.body.username;
-    var password = req.body.password;
-    var email = req.body.email;
-    var type = req.body.type;
+  var sql = "INSERT INTO location (userId, streetNumber, streetName, city, province, postalCode) VALUES ('" + userId + "', '" + streetNumber + "', '" + streetName + "', '" + city + "', '" + province + "', '" + postalCode + "')";
+  console.log(sql);
 
-    console.log('post ' + username);
-    console.log('post ' + password);
-    console.log('post ' + email);
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log("Location added!")
+  });
+
+})
+
+// create user to db
+router.get('/createUser', function(req, res) {
+    var email = req.param('email');
+    var name = req.param('name');
+    var password = req.param('password');
+    var type = req.param('type');
 
     connectDB();
 
     // post a new user to the database
-    var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + username + "', '" + password + "', '" + email + "', '" + type + "')";
+    var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + name + "', '" + password + "', '" + email + "', " + type + ")";
     con.query(sql, function (err, result) {
       if (err) throw err;
-
+      
       // get the id of the newly registered user
-      var sql2 = "SELECT id FROM users WHERE email='"+ email +"'";
+      var sql2 = "SELECT LAST_INSERT_ID() AS userId";
       con.query(sql2, function (err, result2) {
         if (err) throw err;
+        var userId = result2[0].userId
 
         //create a customer within stripe for payments
         console.log('attempting to create customer');
         stripe.customers.create({
-          description: 'Customer for' + username,
+          description: 'Customer for' + name,
           email: email,
           source: "tok_amex" // obtained with Stripe.js
         }, function(err, customer) {
           console.log(customer);
           var cusStripeID = customer.id
-          var cusID = result2[0].id;
 
           // update the user in the database to add their new stripe id
-           var sql = "UPDATE users SET stripeCusId ='" + cusStripeID + "' WHERE id='" + cusID + "'";
+           var sql = "UPDATE users SET stripeCusId ='" + cusStripeID + "' WHERE id='" + userId + "'";
            console.log(sql);
            con.query(sql, function (err, result) {
              if (err) throw err;
              console.log('added stripe id');
            });
         });
+        console.log(userId);
+        res.json({
+          userId: userId
+        })
       });
     });
 });
