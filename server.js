@@ -9,11 +9,18 @@ var con = mysql.createConnection({
 
 var stripe = require("stripe")("sk_test_guejfZRO6qW0hAQ1ZZawcWLu00cENZq563");
 var express = require('express');
+var cloudinary = require('cloudinary');
 var app = express();
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 app.use(express.json());
+
+cloudinary.config({
+  cloud_name: 'dwx46un2p',
+  api_key: '779422868541215',
+  api_secret: '2N7lYlIQ5ARTECYoG7LsTC2dU5Q'
+});
 
 var router = express.Router();
 
@@ -28,8 +35,18 @@ function connectDB(){
   }
 }
 
+// post service to db
+// router.post('/postImage', function(req, res) {
+//
+//   var uri = req.param('uri');
+//   cloudinary.v2.uploader.upload(uri,
+//     function(error, result) {console.log(result, error)});
+//
+// });
+
 // make purchase
 router.post('/purchaseService', function(req, res) {
+
 
   stripe.charges.create({
     amount: 2000,
