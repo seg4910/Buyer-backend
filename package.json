@@ -13,6 +13,7 @@
     "cloudinary": "^1.13.2",
     "express": "^4.16.4",
     "mysql": "^2.16.0",
+    "react-native-google-places-autocomplete": "^1.3.9",
     "stripe": "^6.28.0"
   }
 }

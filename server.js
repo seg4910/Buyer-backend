@@ -147,7 +147,7 @@ router.get('/createUser', function(req, res) {
     var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + name + "', '" + password + "', '" + email + "', " + type + ")";
     con.query(sql, function (err, result) {
       if (err) throw err;
-      
+
       // get the id of the newly registered user
       var sql2 = "SELECT LAST_INSERT_ID() AS userId";
       con.query(sql2, function (err, result2) {
@@ -227,6 +227,29 @@ router.get('/getEmailExists', function(req, res){
           accountExists: 0,
           firstName: ''
         });
+      }
+    });
+});
+
+router.get('/getSellerName', function(req, res){
+    var id = req.param('id');
+    console.log("Received id: " + id);
+
+    connectDB();
+
+    var sql = "SELECT sellerName FROM users WHERE id='" + id + "'";
+    console.log(sql);
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log(result);
+      console.log(result[0].name);
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("SellerName Found");
+          res.json({
+            sellerName: result[0].sellerName,
+          });
+      } else {
+        console.log("No Account Found.");
       }
     });
 });
@@ -327,6 +350,24 @@ router.get('/getMyServicePreviews', function(req, res){
     });
 });
 
+router.post('/addSellerName', function(req, res){
+  var userId = req.param('id');
+  var sellerName = req.param('sellerName');
+
+  connectDB();
+
+  console.log(userId);
+
+  var sql = "UPDATE users SET sellerName='" + sellerName + "' WHERE id='" + userId + "'";
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log(err);
+    console.log("Seller name added")
+  });
+
+})
 
 router.get('/getServiceInfo', function(req, res){
     //var email = req.param('email');
