@@ -47,6 +47,17 @@ function connectDB(){
 // make purchase
 router.post('/purchaseService', function(req, res) {
 
+  var serviceId = req.body.serviceId;
+  var userId = req.param('id');
+  var sellerId = req.body.sellerId;
+  var sellerName = req.body.sellerName;
+  var serviceName = req.body.serviceName;
+  var serviceCategory = req.body.serviceCategory;
+  var serviceDescription = req.body.serviceDescription;
+  var minPrice = req.body.minPrice;
+  var maxPrice = req.body.maxPrice;
+
+  console.log(sellerId);
 
   stripe.charges.create({
     amount: 2000,
@@ -54,7 +65,15 @@ router.post('/purchaseService', function(req, res) {
     source: "tok_amex", // obtained with Stripe.js
     description: "Charge for jenny.rosen@example.com"
   }, function(err, charge) {
-    // asynchronously called
+    connectDB();
+
+    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, price) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + maxPrice + "')";
+    console.log(sql);
+
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      console.log("Service Order Added")
+    });
   });
 
 });
