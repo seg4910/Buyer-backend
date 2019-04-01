@@ -396,6 +396,74 @@ router.get('/getMyServicePreviews', function(req, res){
     });
 });
 
+// routes will go here
+router.get('/getMyOrders', function(req, res){
+    var id = req.param('id');
+    console.log("Received id: " + id);
+    let servicesOrdered = [];
+    connectDB();
+
+    function addServiceOrder(service, count) {
+      if(count !== 0) {
+        servicesOrdered.push(service);
+        console.log(servicesOrdered);
+      } else {
+        console.log('ordered: '+servicesOrdered);
+        res.json({
+          orders: servicesOrdered
+        });
+      }
+      //console.log(servicesOrdered);
+    }
+    function getServiceOrder() {
+      //return servicesOrdered;
+      console.log(servicesOrdered);
+    }
+
+    var sql = "SELECT * FROM orders WHERE buyerId='" + id + "'";
+    console.log(sql);
+    con.query(sql, function (err, result) {
+      if (err) throw err;
+      //console.log(result);
+
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("Orders Found");
+
+          for (let i=0; i<result.length; i++) {
+
+            let diff = result.length - i;
+
+            var sql = "SELECT * FROM services WHERE id='" + result[i].id + "'";
+            console.log(sql);
+
+            con.query(sql, function (err, result) {
+              if (err) throw err;
+              //console.log(result);
+
+              if (result[0] !== null && result[0] !== undefined) {
+                console.log("got service ordered");
+                addServiceOrder(result, 1);
+                if (diff == 1) {addServiceOrder('', 0);}
+              }
+            });
+          }
+
+
+          //addServiceOrder('test', 0);
+          //console.log(services);
+          // res.json({
+          //   orders: services
+          // });
+
+      } else {
+        console.log("No Orders Found");
+        res.json({
+          serviceExists: 0,
+        });
+      }
+    });
+});
+
 router.post('/addSellerName', function(req, res){
   var userId = req.param('id');
   var sellerName = req.param('sellerName');
