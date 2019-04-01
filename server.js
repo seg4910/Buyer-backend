@@ -7,6 +7,7 @@ var con = mysql.createConnection({
   database: 'owenyhae_capstone'
 });
 
+const multer = require('multer')
 var stripe = require("stripe")("sk_test_guejfZRO6qW0hAQ1ZZawcWLu00cENZq563");
 var express = require('express');
 var cloudinary = require('cloudinary');
@@ -35,14 +36,24 @@ function connectDB(){
   }
 }
 
-// post service to db
-// router.post('/postImage', function(req, res) {
-//
-//   var uri = req.param('uri');
-//   cloudinary.v2.uploader.upload(uri,
-//     function(error, result) {console.log(result, error)});
-//
-// });
+const Storage = multer.diskStorage({
+  destination(req, file, callback) {
+    callback(null, './images')
+  },
+  filename(req, file, callback) {
+    callback(null, `${file.fieldname}_${Date.now()}_${file.originalname}`)
+  },
+})
+
+const upload = multer({ storage: Storage })
+
+router.post('/uploadImage', upload.array('photo', 3), (req, res) => {
+  console.log('file', req.files)
+  console.log('body', req.body)
+  res.status(200).json({
+    message: 'success!',
+  })
+})
 
 // make purchase
 router.post('/purchaseService', function(req, res) {
@@ -198,6 +209,22 @@ router.get('/createUser', function(req, res) {
       });
     });
 });
+
+//edit a field
+router.post('/editField', function(req, res){
+  var userId = req.body.userId;
+  var fieldType = req.body.fieldType;
+  var fieldValue = req.body.fieldValue;
+
+  connectDB();
+
+  var sql = "UPDATE users SET " + fieldType + "='" + fieldValue + "' WHERE id=" + userId;
+  console.log(sql)
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log("Field Updated");
+  });
+})
 
 // post service to db
 router.post('/postService', function(req, res) {
