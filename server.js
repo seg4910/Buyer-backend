@@ -55,6 +55,8 @@ router.post('/uploadImage', upload.array('photo', 3), (req, res) => {
   })
 })
 
+connectDB();
+
 // make purchase
 router.post('/purchaseService', function(req, res) {
 
@@ -76,9 +78,8 @@ router.post('/purchaseService', function(req, res) {
     source: "tok_amex", // obtained with Stripe.js
     description: "Charge for jenny.rosen@example.com"
   }, function(err, charge) {
-    connectDB();
 
-    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, price) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + maxPrice + "')";
+    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, price, serviceCategory, sellerName) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + maxPrice + "', '" + serviceCategory + "', '" + sellerName + "')";
     console.log(sql);
 
     con.query(sql, function (err, result) {
@@ -97,7 +98,6 @@ router.post('/newCardStripe', function(req, res) {
   var token = req.param('token');
   console.log(token);
   console.log('here');
-  connectDB();
   var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
   var stripeCusId = '';
 
@@ -122,7 +122,6 @@ router.get('/getStripeCustomer', function(req, res) {
   var cusID = req.param('id');
   //console.log(cusID);
   //retreive a customer and their payment info from stripeCusId
-  connectDB();
   var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
   var stripeCusId = '';
 
@@ -150,7 +149,6 @@ router.get('/createLocation', function(req, res){
   var province = req.param('province');
   var postalCode = req.param('postalCode');
 
-  connectDB();
 
   console.log(userId);
 
@@ -171,7 +169,6 @@ router.get('/createUser', function(req, res) {
     var password = req.param('password');
     var type = req.param('type');
 
-    connectDB();
 
     // post a new user to the database
     var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + name + "', '" + password + "', '" + email + "', " + type + ")";
@@ -216,7 +213,6 @@ router.post('/editField', function(req, res){
   var fieldType = req.body.fieldType;
   var fieldValue = req.body.fieldValue;
 
-  connectDB();
 
   var sql = "UPDATE users SET " + fieldType + "='" + fieldValue + "' WHERE id=" + userId;
   console.log(sql)
@@ -237,7 +233,6 @@ router.post('/postService', function(req, res) {
     var minPrice = req.body.minPrice;
     var maxPrice = req.body.maxPrice;
 
-    connectDB();
 
     var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceCategory + "', '" + serviceDescription + "', '" + minPrice +"', '" + maxPrice +"')";
     con.query(sql, function (err, result) {
@@ -253,7 +248,6 @@ router.get('/getEmailExists', function(req, res){
     var email = req.param('email');
     console.log("Received: " + email);
 
-    connectDB();
 
     var sql = "SELECT * FROM users WHERE email='" + email + "'";
     console.log(sql);
@@ -281,7 +275,6 @@ router.get('/getSellerName', function(req, res){
     var id = req.param('id');
     console.log("Received id: " + id);
 
-    connectDB();
 
     var sql = "SELECT sellerName FROM users WHERE id='" + id + "'";
     console.log(sql);
@@ -304,7 +297,6 @@ router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
     console.log("Received id: " + id);
 
-    connectDB();
 
     var sql = "SELECT * FROM users WHERE id='" + id + "'";
     console.log(sql);
@@ -331,7 +323,6 @@ router.get('/signIn', function(req, res){
   var password = req.param('password');
   console.log("Received: " + email + ', ' + password);
 
-  connectDB();
 
   var sql = "SELECT id, name, type FROM users WHERE email='" + email + "' AND password='" + password + "'";
   con.query(sql, function (err, result) {
@@ -350,7 +341,6 @@ router.get('/signIn', function(req, res){
 router.get('/getServicePreviews', function(req, res){
     //var email = req.param('email');
     //console.log("Received: " + email);
-    connectDB();
 
     var sql = "SELECT * FROM services";
     console.log(sql);
@@ -374,7 +364,6 @@ router.get('/getServicePreviews', function(req, res){
 router.get('/getMyServicePreviews', function(req, res){
     var id = req.param('id');
     console.log("Received id: " + id);
-    connectDB();
 
     var sql = "SELECT * FROM services WHERE sellerID='" + id + "'";
     console.log(sql);
@@ -400,25 +389,6 @@ router.get('/getMyServicePreviews', function(req, res){
 router.get('/getMyOrders', function(req, res){
     var id = req.param('id');
     console.log("Received id: " + id);
-    let servicesOrdered = [];
-    connectDB();
-
-    function addServiceOrder(service, count) {
-      if(count !== 0) {
-        servicesOrdered.push(service);
-        console.log(servicesOrdered);
-      } else {
-        console.log('ordered: '+servicesOrdered);
-        res.json({
-          orders: servicesOrdered
-        });
-      }
-      //console.log(servicesOrdered);
-    }
-    function getServiceOrder() {
-      //return servicesOrdered;
-      console.log(servicesOrdered);
-    }
 
     var sql = "SELECT * FROM orders WHERE buyerId='" + id + "'";
     console.log(sql);
@@ -427,38 +397,15 @@ router.get('/getMyOrders', function(req, res){
       //console.log(result);
 
       if (result[0] !== null && result[0] !== undefined) {
-        console.log("Orders Found");
-
-          for (let i=0; i<result.length; i++) {
-
-            let diff = result.length - i;
-
-            var sql = "SELECT * FROM services WHERE id='" + result[i].id + "'";
-            console.log(sql);
-
-            con.query(sql, function (err, result) {
-              if (err) throw err;
-              //console.log(result);
-
-              if (result[0] !== null && result[0] !== undefined) {
-                console.log("got service ordered");
-                addServiceOrder(result, 1);
-                if (diff == 1) {addServiceOrder('', 0);}
-              }
-            });
-          }
-
-
-          //addServiceOrder('test', 0);
-          //console.log(services);
-          // res.json({
-          //   orders: services
-          // });
+          console.log("Orders Found");
+          res.json({
+            orders: result
+          });
 
       } else {
         console.log("No Orders Found");
         res.json({
-          serviceExists: 0,
+          orders: null,
         });
       }
     });
@@ -468,7 +415,6 @@ router.post('/addSellerName', function(req, res){
   var userId = req.param('id');
   var sellerName = req.param('sellerName');
 
-  connectDB();
 
   console.log(userId);
 
@@ -486,7 +432,6 @@ router.post('/addSellerName', function(req, res){
 router.get('/getServiceInfo', function(req, res){
     //var email = req.param('email');
     //console.log("Received: " + email);
-    connectDB();
     var id = req.param('service');
     var sql = "SELECT * FROM services WHERE id=" + id;
     console.log(sql);
