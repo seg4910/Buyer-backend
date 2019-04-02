@@ -426,13 +426,15 @@ router.get('/getMyOrders', function(req, res){
       if (result[0] !== null && result[0] !== undefined) {
           console.log("Orders Found");
           res.json({
-            orders: result
+            orders: result,
+            ordersExist: true
           });
 
       } else {
         console.log("No Orders Found");
         res.json({
           orders: null,
+          ordersExist: false
         });
       }
     });
