@@ -72,6 +72,9 @@ router.post('/purchaseService', function(req, res) {
 
   console.log(sellerId);
 
+var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+
   stripe.charges.create({
     amount: 2000,
     currency: "cad",
@@ -79,7 +82,7 @@ router.post('/purchaseService', function(req, res) {
     description: "Charge for jenny.rosen@example.com"
   }, function(err, charge) {
 
-    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, price, serviceCategory, sellerName) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + maxPrice + "', '" + serviceCategory + "', '" + sellerName + "')";
+    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, price, serviceCategory, sellerName) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + date + "', '" + maxPrice + "', '" + serviceCategory + "', '" + sellerName + "')";
     console.log(sql);
 
     con.query(sql, function (err, result) {
@@ -87,8 +90,32 @@ router.post('/purchaseService', function(req, res) {
       console.log("Service Order Added")
     });
   });
-
 });
+
+// create location
+router.get('/viewOrder', function(req, res){
+
+  var orderId = req.param('id');
+  var sql = "SELECT * FROM orders WHERE id='" + orderId + "'";
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log(result);
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Order Found.");
+        res.json({
+          order: result
+        });
+    } else {
+      console.log("No Order Found.");
+      res.json({
+        order: null
+      });
+    }
+  });
+
+})
 
 // get stripe customer
 router.post('/newCardStripe', function(req, res) {
