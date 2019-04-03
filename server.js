@@ -92,30 +92,6 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
   });
 });
 
-// create location
-router.get('/viewOrder', function(req, res){
-
-  var orderId = req.param('id');
-  var sql = "SELECT * FROM orders WHERE id='" + orderId + "'";
-  console.log(sql);
-
-  con.query(sql, function (err, result) {
-    if (err) throw err;
-    console.log(result);
-    if (result[0] !== null && result[0] !== undefined) {
-      console.log("Order Found.");
-        res.json({
-          order: result
-        });
-    } else {
-      console.log("No Order Found.");
-      res.json({
-        order: null
-      });
-    }
-  });
-
-})
 
 // get stripe customer
 router.post('/newCardStripe', function(req, res) {
@@ -439,6 +415,42 @@ router.get('/getMyOrders', function(req, res){
       }
     });
 });
+
+// create location
+router.get('/viewOrder', function(req, res){
+
+  var orderId = req.param('id');
+  var sql = "SELECT * FROM orders WHERE id='" + orderId + "'";
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log(result);
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Order Found.");
+        res.json({
+          order: result
+        });
+    } else {
+      console.log("No Order Found.");
+      res.json({
+        order: null
+      });
+    }
+  });
+})
+
+// create location
+router.get('/cancelOrder', function(req, res){
+
+  var orderId = req.param('id');
+  var sql = "DELETE FROM orders WHERE id='" + orderId + "'";
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { throw err } else { console.log("Canceled Service"); }
+  });
+})
 
 router.post('/addSellerName', function(req, res){
   var userId = req.param('id');
