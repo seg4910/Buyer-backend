@@ -235,14 +235,26 @@ router.post('/postService', function(req, res) {
     var serviceDescription = req.body.serviceDescription;
     var minPrice = req.body.minPrice;
     var maxPrice = req.body.maxPrice;
+    var city = '';
 
-
-    var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceCategory + "', '" + serviceDescription + "', '" + minPrice +"', '" + maxPrice +"')";
+    var sql = "SELECT city FROM location WHERE userId=" + sellerId;
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log("1 service created");
-    //  alert("Account Created!");
+      console.log(result);
+      if (result[0] !== null && result[0] !== undefined) {
+        console.log("Location found");
+        city = result[0].city;
+        console.log(city);
+        var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,city,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceCategory + "', '" + serviceDescription + "', '" + city + "', '" + minPrice +"', '" + maxPrice +"')";
+        console.log(sql);
+        con.query(sql, function (err, result) {
+          if (err) throw err;
+          console.log("1 service created");
+        //  alert("Account Created!");
+        });
+      }
     });
+
 });
 
 
