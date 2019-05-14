@@ -64,7 +64,7 @@ router.post('/purchaseService', function(req, res) {
   var userId = req.param('id');
   var sellerId = req.body.sellerId;
   var sellerName = req.body.sellerName;
-  var serviceName = req.body.serviceName;
+  var serviceName = retq.body.serviceName;
   var serviceCategory = req.body.serviceCategory;
   var serviceDescription = req.body.serviceDescription;
   var minPrice = req.body.minPrice;
@@ -126,7 +126,7 @@ router.get('/getStripeCustomer', function(req, res) {
   //console.log(cusID);
   //retreive a customer and their payment info from stripeCusId
   var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
-  var stripeCusId = '';
+  var stripeCusId = ''; 
 
   con.query(sql, function (err, result) {
     if (err) throw err;
