@@ -48,8 +48,6 @@ const Storage = multer.diskStorage({
 const upload = multer({ storage: Storage })
 
 router.post('/uploadImage', upload.array('photo', 3), (req, res) => {
-  console.log('file', req.files)
-  console.log('body', req.body)
   res.status(200).json({
     message: 'success!',
   })
@@ -73,8 +71,6 @@ router.post('/purchaseService', function(req, res) {
   console.log(sellerId);
 
 var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-
   stripe.charges.create({
     amount: 2000,
     currency: "cad",
@@ -83,7 +79,6 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
   }, function(err, charge) {
 
     var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, price, serviceCategory, sellerName) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + date + "', '" + maxPrice + "', '" + serviceCategory + "', '" + sellerName + "')";
-    console.log(sql);
 
     con.query(sql, function (err, result) {
       if (err) throw err;
@@ -95,19 +90,14 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
 // get stripe customer
 router.post('/newCardStripe', function(req, res) {
-
-  console.log('here1');
   var cusID = req.param('id');
   var token = req.param('token');
-  console.log(token);
-  console.log('here');
   var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
   var stripeCusId = '';
 
   con.query(sql, function (err, result) {
     if (err) throw err;
     stripeCusId = result[0].stripeCusId;
-    console.log(token[0]);
     stripe.customers.createSource(
       stripeCusId,
       { source: token },
@@ -152,11 +142,7 @@ router.get('/createLocation', function(req, res){
   var province = req.param('province');
   var postalCode = req.param('postalCode');
 
-
-  console.log(userId);
-
-  var sql = "INSERT INTO location (userId, streetNumber, streetName, city, province, postalCode) VALUES ('" + userId + "', '" + streetNumber + "', '" + streetName + "', '" + city + "', '" + province + "', '" + postalCode + "')";
-  console.log(sql);
+  var sql = `INSERT INTO location (userId, streetNumber, streetName, city, province, postalCode) VALUES ('${userId}', '${streetNumber}', '${streetName}', '${city}', '${province}', '${postalCode}')`;
 
   con.query(sql, function (err, result) {
     if (err) throw err;
@@ -166,15 +152,13 @@ router.get('/createLocation', function(req, res){
 })
 
 // create user to db
-router.get('/createUser', function(req, res) {
+router.get('/createAccount', function(req, res) {
     var email = req.param('email');
     var name = req.param('name');
     var password = req.param('password');
     var type = req.param('type');
-
-
     // post a new user to the database
-    var sql = "INSERT INTO users (name,password,email,type) VALUES ('" + name + "', '" + password + "', '" + email + "', " + type + ")";
+    var sql = `INSERT INTO ${type} (name,password,email) VALUES ('${name}', '${password}', '${email}')`;
     con.query(sql, function (err, result) {
       if (err) throw err;
 
@@ -185,24 +169,21 @@ router.get('/createUser', function(req, res) {
         var userId = result2[0].userId
 
         //create a customer within stripe for payments
-        console.log('attempting to create customer');
+        console.log(`attempting to create ${type}`);
         stripe.customers.create({
           description: 'Customer for' + name,
           email: email,
           source: "tok_amex" // obtained with Stripe.js
         }, function(err, customer) {
-          console.log(customer);
           var cusStripeID = customer.id
 
           // update the user in the database to add their new stripe id
            var sql = "UPDATE users SET stripeCusId ='" + cusStripeID + "' WHERE id='" + userId + "'";
-           console.log(sql);
            con.query(sql, function (err, result) {
              if (err) throw err;
              console.log('added stripe id');
            });
         });
-        console.log(userId);
         res.json({
           userId: userId
         })
@@ -218,7 +199,6 @@ router.post('/editField', function(req, res){
 
 
   var sql = "UPDATE users SET " + fieldType + "='" + fieldValue + "' WHERE id=" + userId;
-  console.log(sql)
   con.query(sql, function (err, result) {
     if (err) throw err;
     console.log("Field Updated");
@@ -240,17 +220,12 @@ router.post('/postService', function(req, res) {
     var sql = "SELECT city FROM location WHERE userId=" + sellerId;
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log(result);
       if (result[0] !== null && result[0] !== undefined) {
-        console.log("Location found");
         city = result[0].city;
-        console.log(city);
         var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,city,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceCategory + "', '" + serviceDescription + "', '" + city + "', '" + minPrice +"', '" + maxPrice +"')";
-        console.log(sql);
         con.query(sql, function (err, result) {
           if (err) throw err;
           console.log("1 service created");
-        //  alert("Account Created!");
         });
       }
     });
@@ -261,14 +236,10 @@ router.post('/postService', function(req, res) {
 // routes will go here
 router.get('/getEmailExists', function(req, res){
     var email = req.param('email');
-    console.log("Received: " + email);
-
-
-    var sql = "SELECT * FROM users WHERE email='" + email + "'";
-    console.log(sql);
+    var type = req.param('type');
+    var sql = `SELECT * FROM ${type} WHERE email='${email}'`;
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log(result);
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
           res.json({
@@ -288,15 +259,10 @@ router.get('/getEmailExists', function(req, res){
 
 router.get('/getSellerName', function(req, res){
     var id = req.param('id');
-    console.log("Received id: " + id);
-
 
     var sql = "SELECT sellerName FROM users WHERE id='" + id + "'";
-    console.log(sql);
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log(result);
-      console.log(result[0].name);
       if (result[0] !== null && result[0] !== undefined) {
         console.log("SellerName Found");
           res.json({
@@ -310,15 +276,10 @@ router.get('/getSellerName', function(req, res){
 
 router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
-    console.log("Received id: " + id);
-
 
     var sql = "SELECT * FROM users WHERE id='" + id + "'";
-    console.log(sql);
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log(result);
-      console.log(result[0].name);
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
           res.json({
@@ -336,15 +297,14 @@ router.get('/getAccountInfo', function(req, res){
 router.get('/signIn', function(req, res){
   var email = req.param('email');
   var password = req.param('password');
-  console.log("Received: " + email + ', ' + password);
+  var type = req.param('type');
 
-
-  var sql = "SELECT id, name, type FROM users WHERE email='" + email + "' AND password='" + password + "'";
+  var sql = `SELECT id, name FROM ${type} WHERE email='${email}' AND password='${password}'`;
+  console.log(sql);
   con.query(sql, function (err, result) {
     if (err) throw err;
     res.json({
       accountExists: result.length!=0,
-      type: result[0].type,
       firstName: result[0].name,
       id: result[0].id,
     });
@@ -358,10 +318,8 @@ router.get('/getServicePreviews', function(req, res){
     //console.log("Received: " + email);
 
     var sql = "SELECT * FROM services";
-    console.log(sql);
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log(result);
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
           res.json({
@@ -378,13 +336,10 @@ router.get('/getServicePreviews', function(req, res){
 // routes will go here
 router.get('/getMyServicePreviews', function(req, res){
     var id = req.param('id');
-    console.log("Received id: " + id);
 
     var sql = "SELECT * FROM services WHERE sellerID='" + id + "'";
-    console.log(sql);
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log(result);
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
           res.json({
@@ -403,10 +358,8 @@ router.get('/getMyServicePreviews', function(req, res){
 // routes will go here
 router.get('/getMyOrders', function(req, res){
     var id = req.param('id');
-    console.log("Received id: " + id);
 
     var sql = "SELECT * FROM orders WHERE buyerId='" + id + "'";
-    console.log(sql);
     con.query(sql, function (err, result) {
       if (err) throw err;
       //console.log(result);
@@ -433,11 +386,9 @@ router.get('/viewOrder', function(req, res){
 
   var orderId = req.param('id');
   var sql = "SELECT * FROM orders WHERE id='" + orderId + "'";
-  console.log(sql);
 
   con.query(sql, function (err, result) {
     if (err) throw err;
-    console.log(result);
     if (result[0] !== null && result[0] !== undefined) {
       console.log("Order Found.");
         res.json({
@@ -468,11 +419,7 @@ router.post('/addSellerName', function(req, res){
   var userId = req.param('id');
   var sellerName = req.param('sellerName');
 
-
-  console.log(userId);
-
   var sql = "UPDATE users SET sellerName='" + sellerName + "' WHERE id='" + userId + "'";
-  console.log(sql);
 
   con.query(sql, function (err, result) {
     if (err) throw err;
@@ -487,10 +434,8 @@ router.get('/getServiceInfo', function(req, res){
     //console.log("Received: " + email);
     var id = req.param('service');
     var sql = "SELECT * FROM services WHERE id=" + id;
-    console.log(sql);
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log(result);
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
           res.json({
