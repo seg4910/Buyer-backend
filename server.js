@@ -36,6 +36,10 @@ function connectDB(){
   }
 }
 
+connectDB();
+
+
+// image upload processing
 const Storage = multer.diskStorage({
   destination(req, file, callback) {
     callback(null, './images')
@@ -53,7 +57,6 @@ router.post('/uploadImage', upload.array('photo', 3), (req, res) => {
   })
 })
 
-connectDB();
 
 // make purchase
 router.post('/purchaseService', function(req, res) {
@@ -88,7 +91,7 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 });
 
 
-// get stripe customer
+// create new stripe customer
 router.post('/newCardStripe', function(req, res) {
   var cusID = req.param('id');
   var token = req.param('token');
@@ -124,7 +127,7 @@ router.get('/getStripeCustomer', function(req, res) {
     stripe.customers.retrieve(
       stripeCusId,
       function(err, customer) {
-        console.log(customer.sources.data);
+        //console.log(customer.sources.data);
         res.json({
           stripeCustomerCards: customer.sources.data
         });
@@ -233,7 +236,7 @@ router.post('/postService', function(req, res) {
 });
 
 
-// routes will go here
+// check if an email is already associated with an account
 router.get('/getEmailExists', function(req, res){
     var email = req.param('email');
     var type = req.param('type');
@@ -257,6 +260,8 @@ router.get('/getEmailExists', function(req, res){
     });
 });
 
+// do we need this?
+// get a sellers name
 router.get('/getSellerName', function(req, res){
     var id = req.param('id');
 
@@ -274,6 +279,8 @@ router.get('/getSellerName', function(req, res){
     });
 });
 
+
+// get all info for a users account
 router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
 
@@ -293,7 +300,7 @@ router.get('/getAccountInfo', function(req, res){
     });
 });
 
-
+// sign in
 router.get('/signIn', function(req, res){
   var email = req.param('email');
   var password = req.param('password');
@@ -312,7 +319,7 @@ router.get('/signIn', function(req, res){
 });
 
 
-// routes will go here
+// get services offered
 router.get('/getServicePreviews', function(req, res){
     //var email = req.param('email');
     //console.log("Received: " + email);
@@ -355,7 +362,7 @@ router.get('/getMyServicePreviews', function(req, res){
     });
 });
 
-// routes will go here
+// get a buyers orders
 router.get('/getMyOrders', function(req, res){
     var id = req.param('id');
 
@@ -447,6 +454,45 @@ router.get('/getServiceInfo', function(req, res){
       }
     });
 });
+
+
+router.get('/getSellerAvailability', function(req, res){
+
+  var id = req.param('seller');
+  var sql = "SELECT * FROM shifts WHERE sellerId=" + id;
+  console.log(sql);
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log(result);
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Shifts Found");
+        res.json({
+          shiftInfo: result
+        });
+    } else {
+      console.log("No Shifts Found");
+    }
+  });
+});
+
+router.get('/getDailyShifts', function(req, res){
+  var day = req.param('day');
+  var sql = "SELECT * FROM shifts WHERE day='" + day + "'";
+  console.log(sql);
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log(result);
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Daily Shifts Found");
+        res.json({
+          dailyShifts: result
+        });
+    } else {
+      console.log("No Daily Shifts Found");
+    }
+  });
+});
+
 
 
 app.use('/api', router);
