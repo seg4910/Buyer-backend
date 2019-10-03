@@ -1,11 +1,23 @@
 var mysql = require('mysql');
+var fs = require('fs');
+
+
 //var config = require('./config')
-var con = mysql.createConnection({
-  host    : '127.0.0.1',
-  user    : 'owenyhae',
-  password: 'Roksa4123!cp',
-  database: 'owenyhae_capstone'
-});
+ var con = mysql.createConnection({
+  host    : '',
+  user    : '',
+  password: '',
+  database: '',
+  port: 25060,
+  ssl: {
+    ca : fs.readFileSync('./ca-certificate.crt')
+  }
+}); 
+
+//var connectionString = "mysql://doadmin:cjd7mheqntz9e8mr@db-mysql-nyc1-23316-do-user-6507550-0.db.ondigitalocean.com:25060/defaultdb?ssl-mode=REQUIRED";
+//var con= mysql.createConnection(connectionString); 
+
+
 
 const multer = require('multer')
 var stripe = require("stripe")("sk_test_guejfZRO6qW0hAQ1ZZawcWLu00cENZq563");
@@ -39,22 +51,33 @@ function connectDB(){
 connectDB();
 
 
-// image upload processing
-const Storage = multer.diskStorage({
+// image upload processing to backend directory
+var imgPath = '';
+ const Storage = multer.diskStorage({
   destination(req, file, callback) {
     callback(null, './images')
   },
   filename(req, file, callback) {
-    callback(null, `${file.fieldname}_${Date.now()}_${file.originalname}`)
+    imgPath = `${file.fieldname}_${Date.now()}_${file.originalname}`;
+    callback(null, imgPath)
   },
-})
-
+}) 
 const upload = multer({ storage: Storage })
 
+// upload image path to database
 router.post('/uploadImage', upload.array('photo', 3), (req, res) => {
-  res.status(200).json({
-    message: 'success!',
-  })
+  var id = req.param('id');
+  var sql = `UPDATE users SET img='${imgPath}' WHERE id=${id}`;
+
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    console.log("Image Added");
+    res.json({
+      imgPath: imgPath
+    });    
+  });  
 })
 
 
@@ -127,7 +150,6 @@ router.get('/getStripeCustomer', function(req, res) {
     stripe.customers.retrieve(
       stripeCusId,
       function(err, customer) {
-        //console.log(customer.sources.data);
         res.json({
           stripeCustomerCards: customer.sources.data
         });
@@ -285,15 +307,19 @@ router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
 
     var sql = "SELECT * FROM users WHERE id='" + id + "'";
+    //var sqlImg = `SELECT img from images WHERE userId=${id}`;
+    
     con.query(sql, function (err, result) {
       if (err) throw err;
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
-          res.json({
-            name: result[0].name,
-            email: result[0].email,
-            password: result[0].password,
-          });
+            res.json({
+              name: result[0].name,
+              email: result[0].email,
+              password: result[0].password,
+              img: result[0].img,
+              phone: result[0].phone
+            });            
       } else {
         console.log("No Account Found.");
       }
@@ -319,12 +345,20 @@ router.get('/signIn', function(req, res){
 });
 
 
-// get services offered
+// get services
 router.get('/getServicePreviews', function(req, res){
-    //var email = req.param('email');
-    //console.log("Received: " + email);
 
-    var sql = "SELECT * FROM services";
+    var serviceCat = req.param('serviceCat');
+
+    // if a specific category is selected, retrieve only those services
+    if (serviceCat != 'ALL') {
+      var sql = `SELECT * FROM services WHERE serviceCategory='${serviceCat}'`;
+    } else {
+      var sql = `SELECT * FROM services`;
+    }
+
+    console.log(sql);
+
     con.query(sql, function (err, result) {
       if (err) throw err;
       if (result[0] !== null && result[0] !== undefined) {
@@ -458,8 +492,10 @@ router.get('/getServiceInfo', function(req, res){
 
 router.get('/getSellerAvailability', function(req, res){
 
-  var id = req.param('seller');
-  var sql = "SELECT * FROM shifts WHERE sellerId=" + id;
+  var sellerId = req.param('sellerId');
+  var serviceId = req.param('serviceId');
+
+  var sql = `SELECT * FROM shifts WHERE sellerId=${sellerId} AND serviceId=${serviceId}`;
   console.log(sql);
   con.query(sql, function (err, result) {
     if (err) throw err;
