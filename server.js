@@ -108,7 +108,10 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
     con.query(sql, function (err, result) {
       if (err) throw err;
-      console.log("Service Order Added")
+        console.log(result.insertId);
+        res.json({
+          orderId: result.insertId
+        })
     });
   });
 });
@@ -303,7 +306,7 @@ router.get('/getSellerName', function(req, res){
 // get all info for a users account
 router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
-    var account_type = req.param('account_type');
+    var account_type = req.param('type');
 
     var sql = `SELECT * FROM ${account_type} WHERE id='${id}'`;
     //var sqlImg = `SELECT img from images WHERE userId=${id}`;
