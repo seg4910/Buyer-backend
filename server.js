@@ -4,15 +4,15 @@ var fs = require('fs');
 
 //var config = require('./config')
  var con = mysql.createConnection({
-  host    : '',
-  user    : '',
-  password: '',
-  database: '',
+  host    : 'db-mysql-nyc1-23316-do-user-6507550-0.db.ondigitalocean.com',
+  user    : 'owenadley',
+  password: 'm2anpro10t7cl7lr',
+  database: 'defaultdb',
   port: 25060,
   ssl: {
     ca : fs.readFileSync('./ca-certificate.crt')
   }
-}); 
+});
 
 //var connectionString = "mysql://doadmin:cjd7mheqntz9e8mr@db-mysql-nyc1-23316-do-user-6507550-0.db.ondigitalocean.com:25060/defaultdb?ssl-mode=REQUIRED";
 //var con= mysql.createConnection(connectionString); 
@@ -231,32 +231,30 @@ router.post('/editField', function(req, res){
 })
 
 // post service to db
-router.post('/postService', function(req, res) {
+router.get('/createService', function(req, res) {
 
-    var sellerId = req.body.sellerId;
-    var sellerName = req.body.sellerName;
-    var serviceName = req.body.serviceName;
-    var serviceCategory = req.body.serviceCategory;
-    var serviceDescription = req.body.serviceDescription;
-    var minPrice = req.body.minPrice;
-    var maxPrice = req.body.maxPrice;
-    var city = '';
+  var sellerId = req.param('sellerId');
+  var sellerName = req.param('sellerName');
+  var serviceName = req.param('serviceName');
+  var serviceCategory = req.param('serviceCategory');
+  var serviceDescription = req.param('serviceDescription');
+  var minPrice = req.param('minPrice');
+  var maxPrice = req.param('maxPrice');
+  var priceHr = req.param('priceHr');
+  var city = req.param('city');
 
-    var sql = "SELECT city FROM location WHERE userId=" + sellerId;
-    con.query(sql, function (err, result) {
-      if (err) throw err;
-      if (result[0] !== null && result[0] !== undefined) {
-        city = result[0].city;
-        var sql = "INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,city,minPrice,maxPrice) VALUES ('" + sellerId + "', '" + sellerName + "', '" + serviceName + "', '" + serviceCategory + "', '" + serviceDescription + "', '" + city + "', '" + minPrice +"', '" + maxPrice +"')";
-        con.query(sql, function (err, result) {
-          if (err) throw err;
-          console.log("1 service created");
-        });
-      }
-    });
-
+  var sql = `INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,
+    city,minPrice,maxPrice,priceHr) VALUES ('${sellerId}', '${sellerName}', '${serviceName}', '${serviceCategory}',
+    '${serviceDescription}', '${city}', '${minPrice}', '${maxPrice}', '${priceHr}')`;
+  console.log(sql);
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    res.json({
+      success: 1
+    })
+    console.log("1 service created");
+  });
 });
-
 
 // check if an email is already associated with an account
 router.get('/getEmailExists', function(req, res){
@@ -305,8 +303,9 @@ router.get('/getSellerName', function(req, res){
 // get all info for a users account
 router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
+    var account_type = req.param('account_type');
 
-    var sql = "SELECT * FROM users WHERE id='" + id + "'";
+    var sql = `SELECT * FROM ${account_type} WHERE id='${id}'`;
     //var sqlImg = `SELECT img from images WHERE userId=${id}`;
     
     con.query(sql, function (err, result) {
@@ -314,6 +313,7 @@ router.get('/getAccountInfo', function(req, res){
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
             res.json({
+              id: result[0].id,
               name: result[0].name,
               email: result[0].email,
               password: result[0].password,
@@ -422,7 +422,6 @@ router.get('/getMyOrders', function(req, res){
     });
 });
 
-// create location
 router.get('/viewOrder', function(req, res){
 
   var orderId = req.param('id');
@@ -444,7 +443,6 @@ router.get('/viewOrder', function(req, res){
   });
 })
 
-// create location
 router.get('/cancelOrder', function(req, res){
 
   var orderId = req.param('id');
