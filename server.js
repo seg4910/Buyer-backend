@@ -20,7 +20,7 @@ var fs = require('fs');
 
 
 const multer = require('multer')
-var stripe = require("stripe")("sk_test_guejfZRO6qW0hAQ1ZZawcWLu00cENZq563");
+var stripe = require("stripe")("sk_test_fTlfHnvlI6jfS34mU7Prokqq00X4ultmWL");
 var express = require('express');
 var cloudinary = require('cloudinary');
 var app = express();
@@ -93,6 +93,7 @@ router.post('/purchaseService', function(req, res) {
   var serviceDescription = req.body.serviceDescription;
   var minPrice = req.body.minPrice;
   var maxPrice = req.body.maxPrice;
+  var selectedTime = req.body.selectedTime;
 
   console.log(sellerId);
 
@@ -104,7 +105,7 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
     description: "Charge for jenny.rosen@example.com"
   }, function(err, charge) {
 
-    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, price, serviceCategory, sellerName) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + date + "', '" + maxPrice + "', '" + serviceCategory + "', '" + sellerName + "')";
+    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, price, serviceCategory, sellerName, dateScheduled) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + date + "', '" + maxPrice + "', '" + serviceCategory + "', '" + sellerName + "', '" + selectedTime + "')";
 
     con.query(sql, function (err, result) {
       if (err) throw err;
@@ -394,6 +395,27 @@ router.get('/getMyServicePreviews', function(req, res){
         });
       }
     });
+});
+
+// get sellers orders
+router.get('/getSellerOrders', function(req, res){
+  var id = req.param('id');
+
+  var sql = "SELECT * FROM orders WHERE sellerId='" + id + "'";
+  con.query(sql, function (err, result) {
+    if (err) throw err;
+    if (result[0] !== null && result[0] !== undefined) {
+        console.log("Orders Found");
+        res.json({
+          orders: result
+        });
+    } else {
+      console.log("No Orders Found");
+      res.json({
+        orders: null
+      });
+    }
+  });
 });
 
 // get a buyers orders
