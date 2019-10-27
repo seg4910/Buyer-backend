@@ -405,16 +405,17 @@ router.get('/getSellerOrders', function(req, res){
     if (err) { res.status(404).send(); throw err; };
     if (result[0] !== null && result[0] !== undefined) {
         console.log("Orders Found");
-        res.json({
+        return res
+          .status(200).json({
           orders: result
         });
     } else {
       console.log("No Orders Found");
-      res.json({
+      return res
+      .status(200).json({
         orders: null
       });
     }
-    res.status(200).send();
   });
 });
 
