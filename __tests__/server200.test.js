@@ -14,13 +14,7 @@ var con = mysql.createConnection({
     }
   });
 
-const signin_input = {
-    type: 'sellers',
-    email: 'owen.adley@gmail.com',
-    password: 'pass',
-}
-
-describe('API end point test', () => {
+describe('API end point 200 test', () => {
     beforeAll(() => {
         con.connect(function(err) { if (err) throw err; });
     });
@@ -43,7 +37,7 @@ describe('API end point test', () => {
         return request(app).get('/api/getMyServicePreviews/?id=1').expect(200);
     });
     it("getServicePreviews", async () => {
-        return request(app).get('/api/getMyServicePreviews/?serviceCat=LM').expect(200);
+        return request(app).get('/api/getServicePreviews/?serviceCat=LM').expect(200);
     });
     it("signIn users", async () => {
         return request(app).get('/api/signIn/?email=test@gmail.com&password=test&type=users').expect(200);
@@ -58,20 +52,11 @@ describe('API end point test', () => {
         return request(app).get('/api/getAccountInfo/?id=1&type=sellers').expect(200);
     });
     it("getEmailExists users", async () => {
-        return request(app).get('/api/getAccountInfo/?email=test@gmail.com&type=users').expect(200);
+        return request(app).get('/api/getEmailExists/?email=test@gmail.com&type=users').expect(200);
     });
     it("getEmailExists sellers", async () => {
-        return request(app).get('/api/getAccountInfo/?email=owen.adley@gmail.com&type=sellers').expect(200);
+        return request(app).get('/api/getEmailExists/?email=owen.adley@gmail.com&type=sellers').expect(200);
     });
-/*     it("getStripeCustomer", async () => {
-        return request(app).get('/api/getStripeCustomer/?id=1').expect(200);
-    }); */
-    /*it("editField users", async () => {
-        return request(app).get('/api/editField/?userId=1&fieldType=name&fieldValue=test&type=users').expect(200);
-    });
-    it("editField sellers", async () => {
-        return request(app).get('/api/editField/?userId=1&fieldType=name&fieldValue=test&type=sellers').expect(200);
-    });*/
     afterAll((done) => {
         con.end(done);
     });
