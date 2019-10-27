@@ -155,12 +155,11 @@ router.get('/getStripeCustomer', function(req, res) {
     stripe.customers.retrieve(
       stripeCusId,
       function(err, customer) {
-        res.json({
+        return res.status(200).json({
           stripeCustomerCards: customer.sources.data
         });
       }
     );
-    res.status(200).send();
   });
 });
 
@@ -276,19 +275,18 @@ router.get('/getEmailExists', function(req, res){
       if (err) throw err;
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
-          res.json({
+          return res.status(200).json({
             accountExists: 1,
             firstName: result[0].name,
             id: result[0].id
           });
       } else {
         console.log("No Account Found.");
-        res.json({
+        return res.status(200).json({
           accountExists: 0,
           firstName: ''
         });
       }
-      res.status(200).send();
     });
 });
 
@@ -304,7 +302,7 @@ router.get('/getAccountInfo', function(req, res){
       if (err) throw err;
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
-            res.json({
+            return res.status(200).json({
               id: result[0].id,
               name: result[0].name,
               email: result[0].email,
@@ -314,8 +312,9 @@ router.get('/getAccountInfo', function(req, res){
             });            
       } else {
         console.log("No Account Found.");
+        res.status(200).send();
+
       }
-      res.status(200).send();
     });
 });
 
@@ -329,12 +328,11 @@ router.get('/signIn', function(req, res){
   console.log(sql);
   con.query(sql, function (err, result) {
     if (err) throw err;
-    res.json({
+    return res.status(200).json({
       accountExists: result.length!=0,
       firstName: result[0].name,
       id: result[0].id,
     });
-    res.status(200).send();
   });
 });
 
@@ -357,13 +355,13 @@ router.get('/getServicePreviews', function(req, res){
       if (err) throw err;
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
-          res.json({
-            servicePreviews: result
-          });
+          return res
+            .status(200)
+            .json({servicePreviews: result});
+
       } else {
         console.log("No Services Found");
       }
-      res.status(200).send();
     });
 });
 
@@ -377,17 +375,16 @@ router.get('/getMyServicePreviews', function(req, res){
       if (err) throw err;
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
-          res.json({
+          return res.status(200).json({
             servicePreviews: result,
             serviceExists: 1,
           });
       } else {
         console.log("No Services Found");
-        res.json({
+        return res.status(200).json({
           serviceExists: 0,
         });
       }
-      res.status(200).send();
     });
 });
 
@@ -424,19 +421,20 @@ router.get('/getMyOrders', function(req, res){
 
       if (result[0] !== null && result[0] !== undefined) {
           console.log("Orders Found");
-          res.json({
+          return res
+          .status(200)
+          .json({
             orders: result,
             ordersExist: true
           });
 
       } else {
         console.log("No Orders Found");
-        res.json({
+        return res.status(200).json({
           orders: null,
           ordersExist: false
         });
       }
-      res.status(200).send();
     });
 });
 
@@ -448,16 +446,19 @@ router.get('/viewOrder', function(req, res){
     if (err) throw err;
     if (result[0] !== null && result[0] !== undefined) {
       console.log("Order Found.");
-        res.json({
-          order: result
-        });
+        return res
+          .status(200)
+          .json({
+            order: result
+           });
     } else {
       console.log("No Order Found.");
-      res.json({
+      return res
+      .status(200)
+      .json({
         order: null
       });
     }
-    res.status(200).send();
   });
 })
 
@@ -483,13 +484,15 @@ router.get('/getServiceInfo', function(req, res){
       if (err) throw err;
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
-          res.json({
+          return res
+            .status(200)
+            .json({
             serviceInfo: result
           });
       } else {
         console.log("No Services Found");
+        res.status(200).send();
       }
-      res.status(200).send();
     });
 });
 
@@ -506,13 +509,15 @@ router.get('/getSellerAvailability', function(req, res){
     console.log(result);
     if (result[0] !== null && result[0] !== undefined) {
       console.log("Shifts Found");
-        res.json({
+        return res
+          .status(200)
+          .json({
           shiftInfo: result
         });
     } else {
       console.log("No Shifts Found");
+      res.status(200).send();
     }
-    res.status(200).send();
   });
 });
 
@@ -525,13 +530,15 @@ router.get('/getDailyShifts', function(req, res){
     console.log(result);
     if (result[0] !== null && result[0] !== undefined) {
       console.log("Daily Shifts Found");
-        res.json({
+        return res
+        .status(200).
+        json({
           dailyShifts: result
         });
     } else {
       console.log("No Daily Shifts Found");
+      res.status(200).send();      
     }
-    res.status(200).send();
   });
 });
 
