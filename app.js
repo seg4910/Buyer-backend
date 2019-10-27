@@ -92,7 +92,7 @@ router.post('/purchaseService', function(req, res) {
   var minPrice = req.body.minPrice;
   var maxPrice = req.body.maxPrice;
   var selectedTime = req.body.selectedTime;
-
+  var status = 'PENDING';
   console.log(sellerId);
 
 var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -103,7 +103,8 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
     description: "Charge for jenny.rosen@example.com"
   }, function(err, charge) {
 
-    var sql = "INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, price, serviceCategory, sellerName, dateScheduled) VALUES ('" + sellerId + "', '" + userId + "', '" + serviceId + "', '" + date + "', '" + maxPrice + "', '" + serviceCategory + "', '" + sellerName + "', '" + selectedTime + "')";
+    var sql = `INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, price, serviceCategory, sellerName, dateScheduled, status, serviceName) 
+    VALUES ('${sellerId}', '${userId}', '${serviceId}', '${date}', '${maxPrice}', '${serviceCategory}', '${sellerName}', '${selectedTime}', '${status}', '${serviceName}')`;
 
     con.query(sql, function (err, result) {
       if (err) throw err;
@@ -440,7 +441,6 @@ router.get('/getMyOrders', function(req, res){
 });
 
 router.get('/viewOrder', function(req, res){
-
   var orderId = req.param('id');
   var sql = "SELECT * FROM orders WHERE id='" + orderId + "'";
 
