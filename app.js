@@ -293,9 +293,9 @@ router.get('/getEmailExists', function(req, res){
 // get all info for a users account
 router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
-    var account_type = req.param('type');
+    var type = req.param('type');
 
-    var sql = `SELECT * FROM ${account_type} WHERE id='${id}'`;
+    var sql = `SELECT * FROM ${type} WHERE id='${id}'`;
     //var sqlImg = `SELECT img from images WHERE userId=${id}`;
     
     con.query(sql, function (err, result) {
@@ -397,16 +397,17 @@ router.get('/getSellerOrders', function(req, res){
     if (err) throw err;
     if (result[0] !== null && result[0] !== undefined) {
         console.log("Orders Found");
-        res.json({
+        return res
+          .status(200).json({
           orders: result
         });
     } else {
       console.log("No Orders Found");
-      res.json({
+      return res
+      .status(200).json({
         orders: null
       });
     }
-    res.status(200).send();
   });
 });
 
