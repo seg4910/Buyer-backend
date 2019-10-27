@@ -63,9 +63,9 @@ describe('API end point test', () => {
     it("getEmailExists sellers", async () => {
         return request(app).get('/api/getAccountInfo/?email=owen.adley@gmail.com&type=sellers').expect(200);
     });
-    it("getStripeCustomer", async () => {
+/*     it("getStripeCustomer", async () => {
         return request(app).get('/api/getStripeCustomer/?id=1').expect(200);
-    });
+    }); */
     /*it("editField users", async () => {
         return request(app).get('/api/editField/?userId=1&fieldType=name&fieldValue=test&type=users').expect(200);
     });
