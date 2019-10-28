@@ -64,12 +64,13 @@ const upload = multer({ storage: Storage })
 // upload image path to database
 router.post('/uploadImage', upload.array('photo', 3), (req, res) => {
   var id = req.param('id');
+  if (id === undefined) { res.status(404).send(); throw err; };
   var sql = `UPDATE users SET img='${imgPath}' WHERE id=${id}`;
 
   console.log(sql);
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     console.log("Image Added");
     res.json({
       imgPath: imgPath
@@ -94,6 +95,7 @@ router.post('/purchaseService', function(req, res) {
   var selectedTime = req.body.selectedTime;
   var status = 'PENDING';
   console.log(sellerId);
+  if (serviceId === undefined || userId === undefined) { res.status(404).send(); throw err; };
 
 var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
   stripe.charges.create({
@@ -107,8 +109,8 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
     VALUES ('${sellerId}', '${userId}', '${serviceId}', '${date}', '${maxPrice}', '${serviceCategory}', '${sellerName}', '${selectedTime}', '${status}', '${serviceName}')`;
 
     con.query(sql, function (err, result) {
-      if (err) throw err;
-        console.log(result.insertId);
+      if (err) { res.status(404).send(); throw err; };
+      console.log(result.insertId);
         res.json({
           orderId: result.insertId
         })
@@ -122,11 +124,12 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 router.post('/newCardStripe', function(req, res) {
   var cusID = req.param('id');
   var token = req.param('token');
+  if (cusID === undefined || token === undefined) { res.status(404).send(); throw err; };
+
   var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
   var stripeCusId = '';
-
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     stripeCusId = result[0].stripeCusId;
     stripe.customers.createSource(
       stripeCusId,
@@ -145,12 +148,13 @@ router.get('/getStripeCustomer', function(req, res) {
 
   var cusID = req.param('id');
   //console.log(cusID);
+  if (cusID === undefined) { res.status(404).send(); throw err; };
   //retreive a customer and their payment info from stripeCusId
   var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
   var stripeCusId = '';
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     stripeCusId = result[0].stripeCusId;
     stripe.customers.retrieve(
       stripeCusId,
@@ -171,11 +175,13 @@ router.get('/createLocation', function(req, res){
   var city = req.param('city');
   var province = req.param('province');
   var postalCode = req.param('postalCode');
-
+  if (userId === undefined || streetNumber === undefined || streetName === undefined ||
+      city === undefined || province === undefined || postalCode === undefined)
+        { res.status(404).send(); throw err; };
   var sql = `INSERT INTO location (userId, streetNumber, streetName, city, province, postalCode) VALUES ('${userId}', '${streetNumber}', '${streetName}', '${city}', '${province}', '${postalCode}')`;
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     console.log("Location added!")
     res.status(200).send();
   });
@@ -188,15 +194,16 @@ router.get('/createAccount', function(req, res) {
     var name = req.param('name');
     var password = req.param('password');
     var type = req.param('type');
+    if (email === undefined || name === undefined || password === undefined || type === undefined) { res.status(404).send(); throw err; };
     // post a new user to the database
     var sql = `INSERT INTO ${type} (name,password,email) VALUES ('${name}', '${password}', '${email}')`;
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err) { res.status(404).send(); throw err; };
 
       // get the id of the newly registered user
       var sql2 = "SELECT LAST_INSERT_ID() AS userId";
       con.query(sql2, function (err, result2) {
-        if (err) throw err;
+        if (err) { res.status(404).send(); throw err; };
         var userId = result2[0].userId
 
         //create a customer within stripe for payments
@@ -211,8 +218,8 @@ router.get('/createAccount', function(req, res) {
           // update the user in the database to add their new stripe id
            var sql = "UPDATE users SET stripeCusId ='" + cusStripeID + "' WHERE id='" + userId + "'";
            con.query(sql, function (err, result) {
-             if (err) throw err;
-             console.log('added stripe id');
+            if (err) { res.status(404).send(); throw err; };
+            console.log('added stripe id');
            });
         });
         res.json({
@@ -233,7 +240,7 @@ router.post('/editField', function(req, res){
 
   var sql = `UPDATE ${type} SET ` + fieldType + "='" + fieldValue + "' WHERE id=" + userId;
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     console.log("Field Updated");
     res.status(200).send();
   });
@@ -251,13 +258,13 @@ router.get('/createService', function(req, res) {
   var maxPrice = req.param('maxPrice');
   var priceHr = req.param('priceHr');
   var city = req.param('city');
-
+  if (sellerId === undefined || sellerName === undefined) { res.status(404).send(); throw err; };
   var sql = `INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,
     city,minPrice,maxPrice,priceHr) VALUES ('${sellerId}', '${sellerName}', '${serviceName}', '${serviceCategory}',
     '${serviceDescription}', '${city}', '${minPrice}', '${maxPrice}', '${priceHr}')`;
   console.log(sql);
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     res.json({
       success: 1
     })
@@ -270,9 +277,10 @@ router.get('/createService', function(req, res) {
 router.get('/getEmailExists', function(req, res){
     var email = req.param('email');
     var type = req.param('type');
+    if (email === undefined || type === undefined) { res.status(404).send(); throw err; };
     var sql = `SELECT * FROM ${type} WHERE email='${email}'`;
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err) { res.status(404).send(); throw err; };
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
           return res.status(200).json({
@@ -294,12 +302,12 @@ router.get('/getEmailExists', function(req, res){
 router.get('/getAccountInfo', function(req, res){
     var id = req.param('id');
     var type = req.param('type');
-
+    if (id === undefined || type === undefined) { res.status(404).send(); throw err; };
     var sql = `SELECT * FROM ${type} WHERE id='${id}'`;
     //var sqlImg = `SELECT img from images WHERE userId=${id}`;
     
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err) { res.status(404).send(); throw err; };
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Account Found.");
             return res.status(200).json({
@@ -323,11 +331,11 @@ router.get('/signIn', function(req, res){
   var email = req.param('email');
   var password = req.param('password');
   var type = req.param('type');
-
+  if (email === undefined || password === undefined || type === undefined) { res.status(404).send(); throw err; };
   var sql = `SELECT id, name FROM ${type} WHERE email='${email}' AND password='${password}'`;
   console.log(sql);
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     return res.status(200).json({
       accountExists: result.length!=0,
       firstName: result[0].name,
@@ -352,7 +360,7 @@ router.get('/getServicePreviews', function(req, res){
     console.log(sql);
 
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err) { res.status(404).send(); throw err; };
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
           return res
@@ -369,10 +377,10 @@ router.get('/getServicePreviews', function(req, res){
 // routes will go here
 router.get('/getMyServicePreviews', function(req, res){
     var id = req.param('id');
-
+    if (id === undefined) { res.status(404).send(); throw err; };
     var sql = "SELECT * FROM services WHERE sellerID='" + id + "'";
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err) { res.status(404).send(); throw err; };
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
           return res.status(200).json({
@@ -391,10 +399,10 @@ router.get('/getMyServicePreviews', function(req, res){
 // get sellers orders
 router.get('/getSellerOrders', function(req, res){
   var id = req.param('id');
-
+  if (id === undefined) { res.status(404).send(); throw err; };
   var sql = "SELECT * FROM orders WHERE sellerId='" + id + "'";
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     if (result[0] !== null && result[0] !== undefined) {
         console.log("Orders Found");
         return res
@@ -414,10 +422,10 @@ router.get('/getSellerOrders', function(req, res){
 // get a buyers orders
 router.get('/getMyOrders', function(req, res){
     var id = req.param('id');
-
+    if (id === undefined) { res.status(404).send(); throw err; };
     var sql = "SELECT * FROM orders WHERE buyerId='" + id + "'";
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err) { res.status(404).send(); throw err; };
       //console.log(result);
 
       if (result[0] !== null && result[0] !== undefined) {
@@ -441,10 +449,11 @@ router.get('/getMyOrders', function(req, res){
 
 router.get('/viewOrder', function(req, res){
   var orderId = req.param('id');
+  if (orderId === undefined) { res.status(404).send(); throw err; };
   var sql = "SELECT * FROM orders WHERE id='" + orderId + "'";
 
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     if (result[0] !== null && result[0] !== undefined) {
       console.log("Order Found.");
         return res
@@ -471,7 +480,8 @@ router.get('/cancelOrder', function(req, res){
   console.log(sql);
 
   con.query(sql, function (err, result) {
-    if (err) { throw err } else {
+    if (err) { res.status(404).send(); throw err; }
+    else {
         console.log("Canceled Service");
         res.status(200).send();
     }
@@ -480,9 +490,10 @@ router.get('/cancelOrder', function(req, res){
 
 router.get('/getServiceInfo', function(req, res){
     var id = req.param('id');
+    if (id === undefined) { res.status(404).send(); throw err; };
     var sql = "SELECT * FROM services WHERE id=" + id;
     con.query(sql, function (err, result) {
-      if (err) throw err;
+      if (err) { res.status(404).send(); throw err; };
       if (result[0] !== null && result[0] !== undefined) {
         console.log("Services Found");
           return res
@@ -502,11 +513,11 @@ router.get('/getSellerAvailability', function(req, res){
 
   var sellerId = req.param('sellerId');
   var serviceId = req.param('serviceId');
-
+  if (sellerId === undefined || serviceId === undefined) { res.status(404).send(); throw err; };
   var sql = `SELECT * FROM shifts WHERE sellerId=${sellerId} AND serviceId=${serviceId}`;
   console.log(sql);
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     console.log(result);
     if (result[0] !== null && result[0] !== undefined) {
       console.log("Shifts Found");
@@ -525,9 +536,9 @@ router.get('/getSellerAvailability', function(req, res){
 router.get('/getDailyShifts', function(req, res){
   var day = req.param('day');
   var sql = "SELECT * FROM shifts WHERE day='" + day + "'";
-  console.log(sql);
+  if (day === undefined) { res.status(404).send(); throw err; };
   con.query(sql, function (err, result) {
-    if (err) throw err;
+    if (err) { res.status(404).send(); throw err; };
     console.log(result);
     if (result[0] !== null && result[0] !== undefined) {
       console.log("Daily Shifts Found");
