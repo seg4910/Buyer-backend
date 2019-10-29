@@ -236,8 +236,6 @@ router.post('/editField', function(req, res){
   var userId = req.body.userId;
   var fieldType = req.body.fieldType;
   var fieldValue = req.body.fieldValue;
-
-
   var sql = `UPDATE ${type} SET ` + fieldType + "='" + fieldValue + "' WHERE id=" + userId;
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
@@ -300,7 +298,7 @@ router.get('/getEmailExists', function(req, res){
 
 // get all info for a users account
 router.get('/getAccountInfo', function(req, res){
-    var id = req.param('id');
+  var id = req.param('id');
     var type = req.param('type');
     if (id === undefined || type === undefined) { res.status(404).send(); throw err; };
     var sql = `SELECT * FROM ${type} WHERE id='${id}'`;
@@ -477,8 +475,6 @@ router.get('/cancelOrder', function(req, res){
 
   var orderId = req.param('id');
   var sql = "DELETE FROM orders WHERE id='" + orderId + "'";
-  console.log(sql);
-
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; }
     else {
@@ -552,6 +548,22 @@ router.get('/getDailyShifts', function(req, res){
       res.status(200).send();      
     }
   });
+});
+
+// possible status' : PENDING, ACCEPTED, COMPLETE, DECLINED
+// respondToOrderRequest
+router.post('/respondToRequest', function(req, res){
+    console.log('here');  
+    var orderId = req.param('id');
+    var resp = req.param('resp');
+
+    var sql = `UPDATE orders SET status='${resp}' WHERE id='${orderId}'`;
+    
+    con.query(sql, function (err, result) {
+      if (err) { res.status(404).send(); throw err; };
+      console.log("Field Updated");
+      res.status(200).send();
+    });
 });
 
 app.use('/api', router);
