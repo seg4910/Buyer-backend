@@ -170,6 +170,7 @@ router.get('/getStripeCustomer', function(req, res) {
 // create location
 router.get('/createLocation', function(req, res){
   var userId = req.param('userId');
+  var type = req.param('type');
   var streetNumber = req.param('streetNumber');
   var streetName = req.param('streetName');
   var city = req.param('city');
@@ -183,7 +184,17 @@ router.get('/createLocation', function(req, res){
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
     console.log("Location added!")
-    res.status(200).send();
+    var get_locationId_qry = "SELECT LAST_INSERT_ID() AS locationId";
+    con.query(get_locationId_qry, function (err, result2) {
+      if (err) { res.status(404).send(); throw err; };
+      var locationId = result2[0].locationId;
+      var update_users_qry = `UPDATE ${type} SET locationId = ${locationId} WHERE (id = ${userId})`;
+      con.query(update_users_qry, function (err, result3) {
+        if (err) { res.status(404).send(); throw err; };
+        console.log(`Added locationId to ${type}`);
+        res.status(200).send();
+      });
+    });
   });
 
 })
