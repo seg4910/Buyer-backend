@@ -579,5 +579,22 @@ router.post('/respondToRequest', function(req, res){
     });
 });
 
+router.post('/startstopService', function(req, res){
+  console.log('here');  
+  var orderId = req.param('id');
+  var action = req.param('action');
+
+  var currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+  var sql = `UPDATE orders SET ${action}='${currentTime}' WHERE id='${orderId}'`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    console.log("Field Updated");
+    res.status(200).send();
+  });
+});
+
 app.use('/api', router);
 module.exports = app;
