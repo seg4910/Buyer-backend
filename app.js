@@ -90,8 +90,6 @@ router.post('/purchaseService', function(req, res) {
   var serviceName = req.body.serviceName;
   var serviceCategory = req.body.serviceCategory;
   var serviceDescription = req.body.serviceDescription;
-  var minPrice = req.body.minPrice;
-  var maxPrice = req.body.maxPrice;
   var selectedTime = req.body.selectedTime;
   var status = 'PENDING';
   console.log(sellerId);
@@ -105,8 +103,8 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
     description: "Charge for jenny.rosen@example.com"
   }, function(err, charge) {
 
-    var sql = `INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, price, serviceCategory, sellerName, dateScheduled, status, serviceName) 
-    VALUES ('${sellerId}', '${userId}', '${serviceId}', '${date}', '${maxPrice}', '${serviceCategory}', '${sellerName}', '${selectedTime}', '${status}', '${serviceName}')`;
+    var sql = `INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, serviceCategory, sellerName, dateScheduled, status, serviceName) 
+    VALUES ('${sellerId}', '${userId}', '${serviceId}', '${date}', '${serviceCategory}', '${sellerName}', '${selectedTime}', '${status}', '${serviceName}')`;
 
     con.query(sql, function (err, result) {
       if (err) { res.status(404).send(); throw err; };
@@ -124,9 +122,10 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
 router.post('/newCardStripe', function(req, res) {
   var cusID = req.param('id');
   var token = req.param('token');
+  var type = req.param('type');  
   if (cusID === undefined || token === undefined) { res.status(404).send(); throw err; };
 
-  var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
+  var sql = `SELECT stripeCusId FROM ${type} WHERE id='${cusID}'`;
   var stripeCusId = '';
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
@@ -147,10 +146,13 @@ router.post('/newCardStripe', function(req, res) {
 router.get('/getStripeCustomer', function(req, res) {
 
   var cusID = req.param('id');
+  var type = req.param('type');  
   //console.log(cusID);
   if (cusID === undefined) { res.status(404).send(); throw err; };
   //retreive a customer and their payment info from stripeCusId
-  var sql = "SELECT stripeCusId FROM users WHERE id='" + cusID + "'";
+  var sql = `SELECT stripeCusId FROM ${type} WHERE id='${cusID}'`;
+  console.log(sql);
+
   var stripeCusId = '';
 
   con.query(sql, function (err, result) {
@@ -159,6 +161,7 @@ router.get('/getStripeCustomer', function(req, res) {
     stripe.customers.retrieve(
       stripeCusId,
       function(err, customer) {
+        console.log(JSON.stringify(customer));
         return res.status(200).json({
           stripeCustomerCards: customer.sources.data
         });
@@ -225,9 +228,9 @@ router.get('/createAccount', function(req, res) {
           source: "tok_amex" // obtained with Stripe.js
         }, function(err, customer) {
           var cusStripeID = customer.id
-
           // update the user in the database to add their new stripe id
-           var sql = "UPDATE users SET stripeCusId ='" + cusStripeID + "' WHERE id='" + userId + "'";
+           var sql = `UPDATE ${type} SET stripeCusId='${cusStripeID}' WHERE id=${userId}`;
+           console.log(sql);
            con.query(sql, function (err, result) {
             if (err) { res.status(404).send(); throw err; };
             console.log('added stripe id');
@@ -263,14 +266,12 @@ router.get('/createService', function(req, res) {
   var serviceName = req.param('serviceName');
   var serviceCategory = req.param('serviceCategory');
   var serviceDescription = req.param('serviceDescription');
-  var minPrice = req.param('minPrice');
-  var maxPrice = req.param('maxPrice');
   var priceHr = req.param('priceHr');
   var city = req.param('city');
   if (sellerId === undefined || sellerName === undefined) { res.status(404).send(); throw err; };
   var sql = `INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,
-    city,minPrice,maxPrice,priceHr) VALUES ('${sellerId}', '${sellerName}', '${serviceName}', '${serviceCategory}',
-    '${serviceDescription}', '${city}', '${minPrice}', '${maxPrice}', '${priceHr}')`;
+    city,priceHr) VALUES ('${sellerId}', '${sellerName}', '${serviceName}', '${serviceCategory}',
+    '${serviceDescription}', '${city}', '${priceHr}')`;
   console.log(sql);
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
@@ -325,7 +326,8 @@ router.get('/getAccountInfo', function(req, res){
               email: result[0].email,
               password: result[0].password,
               img: result[0].img,
-              phone: result[0].phone
+              phone: result[0].phone,
+              fcmToken: result[0].fcmToken
             });            
       } else {
         console.log("No Account Found.");
