@@ -5,6 +5,7 @@ var stripe = require("stripe")("sk_test_fTlfHnvlI6jfS34mU7Prokqq00X4ultmWL");
 var express = require('express');
 var cloudinary = require('cloudinary');
 var bodyParser = require('body-parser');
+var moment = require("moment");
 
 //var config = require('./config')
 var con = mysql.createConnection({
@@ -579,14 +580,42 @@ router.post('/respondToRequest', function(req, res){
     });
 });
 
+router.post('/respondToRequestCompleted', function(req, res){
+  var orderId = req.param('id');
+  var resp = req.param('resp');
+  var duration = req.param('duration');
+  var cost = req.param('cost');
+
+  var sql = `UPDATE orders SET status='${resp}', totalCost='${cost}', actualDuration='${duration}' WHERE id=${orderId}`;
+  
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    console.log("Field Updated");
+    res.status(200).send();
+  });
+});
+
 router.post('/startstopService', function(req, res){
   console.log('here');  
   var orderId = req.param('id');
   var action = req.param('action');
 
-  var currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  var currentTime = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
 
   var sql = `UPDATE orders SET ${action}='${currentTime}' WHERE id='${orderId}'`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    console.log("Field Updated");
+    res.status(200).send();
+  });
+});
+
+router.post('/makePayment', function(req, res){
+  var orderId = req.param('id');
+
+  var sql = `SELECT WHERE id='${orderId}'`;
   console.log(sql);
 
   con.query(sql, function (err, result) {
