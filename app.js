@@ -209,9 +209,12 @@ router.get('/createAccount', function(req, res) {
     var name = req.param('name');
     var password = req.param('password');
     var type = req.param('type');
-    if (email === undefined || name === undefined || password === undefined || type === undefined) { res.status(404).send(); throw err; };
+    var phone = req.param('phone');
+
+    // HANDLE ERROR
+    if (email === undefined || name === undefined || password === undefined || phone === undefined || type === undefined) { res.status(404).send(); throw err; };
     // post a new user to the database
-    var sql = `INSERT INTO ${type} (name,password,email) VALUES ('${name}', '${password}', '${email}')`;
+    var sql = `INSERT INTO ${type} (name,password,email,phone) VALUES ('${name}', '${password}', '${email}', '${phone}')`;
     con.query(sql, function (err, result) {
       if (err) { res.status(404).send(); throw err; };
 
