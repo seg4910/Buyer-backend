@@ -209,9 +209,12 @@ router.get('/createAccount', function(req, res) {
     var name = req.param('name');
     var password = req.param('password');
     var type = req.param('type');
-    if (email === undefined || name === undefined || password === undefined || type === undefined) { res.status(404).send(); throw err; };
+    var phone = req.param('phone');
+
+    // HANDLE ERROR
+    if (email === undefined || name === undefined || password === undefined || phone === undefined || type === undefined) { res.status(404).send(); throw err; };
     // post a new user to the database
-    var sql = `INSERT INTO ${type} (name,password,email) VALUES ('${name}', '${password}', '${email}')`;
+    var sql = `INSERT INTO ${type} (name,password,email,phone) VALUES ('${name}', '${password}', '${email}', '${phone}')`;
     con.query(sql, function (err, result) {
       if (err) { res.status(404).send(); throw err; };
 
@@ -608,6 +611,23 @@ router.post('/startstopService', function(req, res){
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
     console.log("Field Updated");
+    res.status(200).send();
+  });
+});
+
+router.post('/addRating', function(req, res){
+  var sellerId = req.param('sellerId');
+  var serviceId = req.param('serviceId');
+  var orderId = req.param('orderId');
+  var buyerId = req.param('buyerId');
+  var rating = req.param('rating');
+
+  var sql = `INSERT INTO ratings (sellerId, serviceId, orderId, buyerId, rating) VALUES (${sellerId}, ${serviceId}, ${orderId}, ${buyerId}, ${rating})`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    console.log("Rating Added");
     res.status(200).send();
   });
 });
