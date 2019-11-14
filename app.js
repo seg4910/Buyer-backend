@@ -615,6 +615,23 @@ router.post('/startstopService', function(req, res){
   });
 });
 
+router.post('/addRating', function(req, res){
+  var sellerId = req.param('sellerId');
+  var serviceId = req.param('serviceId');
+  var orderId = req.param('orderId');
+  var buyerId = req.param('buyerId');
+  var rating = req.param('rating');
+
+  var sql = `INSERT INTO ratings (sellerId, serviceId, orderId, buyerId, rating) VALUES (${sellerId}, ${serviceId}, ${orderId}, ${buyerId}, ${rating})`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    console.log("Rating Added");
+    res.status(200).send();
+  });
+});
+
 router.post('/makePayment', function(req, res){
   var orderId = req.param('id');
 
