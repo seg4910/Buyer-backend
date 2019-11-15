@@ -92,6 +92,7 @@ router.post('/purchaseService', function(req, res) {
   var serviceCategory = req.body.serviceCategory;
   var serviceDescription = req.body.serviceDescription;
   var selectedTime = req.body.selectedTime;
+  var noteToSeller = req.body.note;
   var status = 'PENDING';
   console.log(sellerId);
   if (serviceId === undefined || userId === undefined) { res.status(404).send(); throw err; };
@@ -104,8 +105,10 @@ var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
     description: "Charge for jenny.rosen@example.com"
   }, function(err, charge) {
 
-    var sql = `INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, serviceCategory, sellerName, dateScheduled, status, serviceName) 
-    VALUES ('${sellerId}', '${userId}', '${serviceId}', '${date}', '${serviceCategory}', '${sellerName}', '${selectedTime}', '${status}', '${serviceName}')`;
+    var sql = `INSERT INTO orders (sellerId, buyerId, serviceId, dateOrdered, serviceCategory, sellerName, dateScheduled, status, serviceName, note) 
+    VALUES ('${sellerId}', '${userId}', '${serviceId}', '${date}', '${serviceCategory}', '${sellerName}', '${selectedTime}', '${status}', '${serviceName}', '${noteToSeller}')`;
+
+    console.log(sql);
 
     con.query(sql, function (err, result) {
       if (err) { res.status(404).send(); throw err; };
@@ -598,6 +601,7 @@ router.post('/respondToRequestCompleted', function(req, res){
   });
 });
 
+// log time when a service order is started and finished
 router.post('/startstopService', function(req, res){
   console.log('here');  
   var orderId = req.param('id');
@@ -615,6 +619,7 @@ router.post('/startstopService', function(req, res){
   });
 });
 
+// add a buyers rating for a seller
 router.post('/addRating', function(req, res){
   var sellerId = req.param('sellerId');
   var serviceId = req.param('serviceId');
