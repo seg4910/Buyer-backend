@@ -334,7 +334,8 @@ router.get('/getAccountInfo', function(req, res){
               password: result[0].password,
               img: result[0].img,
               phone: result[0].phone,
-              fcmToken: result[0].fcmToken
+              fcmToken: result[0].fcmToken,
+              photo: result[0].photo
             });            
       } else {
         console.log("No Account Found.");
@@ -417,6 +418,7 @@ router.get('/getMyServicePreviews', function(req, res){
 // get sellers orders
 router.get('/getSellerOrders', function(req, res){
   var id = req.param('id');
+  console.log(id);
   if (id === undefined) { res.status(404).send(); throw err; };
   var sql = "SELECT * FROM orders WHERE sellerId='" + id + "'";
   con.query(sql, function (err, result) {
@@ -619,6 +621,30 @@ router.post('/startstopService', function(req, res){
   });
 });
 
+// get ratings
+router.get('/getRatings', function(req, res){
+  var id = req.param('id');
+  if (id === undefined) { res.status(404).send(); throw err; };
+  var sql = "SELECT * FROM ratings WHERE serviceId=" + id;
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Ratings Found");
+        return res
+          .status(200)
+          .json({
+          ratingInfo: result
+        });
+    } else {
+      return res
+        .status(200)
+        .json({
+        ratingInfo: null
+    });
+    }
+  });
+});
+
 // add a buyers rating for a seller
 router.post('/addRating', function(req, res){
   var sellerId = req.param('sellerId');
@@ -626,8 +652,9 @@ router.post('/addRating', function(req, res){
   var orderId = req.param('orderId');
   var buyerId = req.param('buyerId');
   var rating = req.param('rating');
+  var comment = req.param('comment');
 
-  var sql = `INSERT INTO ratings (sellerId, serviceId, orderId, buyerId, rating) VALUES (${sellerId}, ${serviceId}, ${orderId}, ${buyerId}, ${rating})`;
+  var sql = `INSERT INTO ratings (sellerId, serviceId, orderId, buyerId, rating, comment) VALUES (${sellerId}, ${serviceId}, ${orderId}, ${buyerId}, ${rating}, '${comment}')`;
   console.log(sql);
 
   con.query(sql, function (err, result) {
