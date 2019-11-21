@@ -95,7 +95,7 @@ router.post('/purchaseService', function(req, res) {
   console.log(sellerId);
   if (serviceId === undefined || userId === undefined) { res.status(404).send(); throw err; };
 
-var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
   stripe.charges.create({
     amount: 2000,
     currency: "cad",
@@ -517,6 +517,32 @@ router.get('/getServiceInfo', function(req, res){
     });
 });
 
+//setSellerSchedule
+router.get('/setSellerAvailability', function(req, res){
+
+  var sellerId = req.param('sellerId');
+  var startHour = req.param('startHour');
+  var endHour = req.param('endHour');
+  var day = req.param('day');
+  var serviceId = req.param('serviceId');
+
+  if (sellerId === undefined 
+    //|| serviceId === undefined
+    ) { res.status(404).send(); throw err; };
+  
+  var sql = `INSERT INTO shifts (sellerID,startHour,endHour,day,serviceId) 
+            VALUES ('${sellerId}', '${startHour}', '${endHour}', '${day}', '${serviceId}')`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    res.json({
+      success: 1
+    })
+    console.log("Shifts successfully added");
+    res.status(200).send();
+  });
+});
 
 router.get('/getSellerAvailability', function(req, res){
 
