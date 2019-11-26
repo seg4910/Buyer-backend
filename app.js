@@ -533,14 +533,13 @@ router.get('/setSellerAvailability', function(req, res){
   var startHour = req.param('startHour');
   var endHour = req.param('endHour');
   var day = req.param('day');
-  var serviceId = req.param('serviceId');
 
   if (sellerId === undefined 
     //|| serviceId === undefined
     ) { res.status(404).send(); throw err; };
   
-  var sql = `INSERT INTO shifts (sellerID,startHour,endHour,day,serviceId) 
-            VALUES ('${sellerId}', '${startHour}', '${endHour}', '${day}', '${serviceId}')`;
+  var sql = `INSERT INTO shifts (sellerID,startHour,endHour,day) 
+            VALUES ('${sellerId}', '${startHour}', '${endHour}', '${day}')`;
   console.log(sql);
 
   con.query(sql, function (err, result) {
@@ -556,9 +555,8 @@ router.get('/setSellerAvailability', function(req, res){
 router.get('/getSellerAvailability', function(req, res){
 
   var sellerId = req.param('sellerId');
-  var serviceId = req.param('serviceId');
-  if (sellerId === undefined || serviceId === undefined) { res.status(404).send(); throw err; };
-  var sql = `SELECT * FROM shifts WHERE sellerId=${sellerId} AND serviceId=${serviceId}`;
+  if (sellerId === undefined) { res.status(404).send(); throw err; };
+  var sql = `SELECT * FROM shifts WHERE sellerId=${sellerId}`;
   console.log(sql);
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
