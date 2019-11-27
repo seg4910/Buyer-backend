@@ -290,6 +290,32 @@ router.get('/createService', function(req, res) {
   });
 });
 
+// post service to db
+router.get('/updateService', function(req, res) {
+
+  var serviceId = req.param('serviceId');
+  var sellerId = req.param('sellerId');
+  var sellerName = req.param('sellerName');
+  var serviceName = req.param('serviceName');
+  var serviceCategory = req.param('serviceCategory');
+  var serviceDescription = req.param('serviceDescription');
+  var priceHr = req.param('priceHr');
+  if (sellerId === undefined || sellerName === undefined) { res.status(404).send(); throw err; };
+
+  var sql = `UPDATE services SET sellerID='${sellerId}', sellerName='${sellerName}', serviceName='${serviceName}', serviceCategory='${serviceCategory}', serviceDescription='${serviceDescription}', priceHr='${priceHr}' WHERE id='${serviceId}'`;
+  
+  console.log(sql);
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    res.json({
+      success: 1
+    })
+    console.log("1 service created");
+    res.status(200).send();
+  });
+});
+
+
 // check if an email is already associated with an account
 router.get('/getEmailExists', function(req, res){
     var email = req.param('email');
