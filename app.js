@@ -365,6 +365,28 @@ router.get('/signIn', function(req, res){
 
 
 // get services
+router.get('/getSellerServicePreviews', function(req, res){
+
+  var id = req.param('id');
+  var sql = `SELECT * FROM services WHERE sellerID='${id}'`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Services Found");
+        return res
+          .status(200)
+          .json({servicePreviews: result});
+
+    } else {
+      console.log("No Services Found");
+    }
+  });
+});
+
+
+// get services
 router.get('/getServicePreviews', function(req, res){
 
     var serviceCat = req.param('serviceCat');
