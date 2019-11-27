@@ -290,6 +290,32 @@ router.get('/createService', function(req, res) {
   });
 });
 
+// post service to db
+router.get('/updateService', function(req, res) {
+
+  var serviceId = req.param('serviceId');
+  var sellerId = req.param('sellerId');
+  var sellerName = req.param('sellerName');
+  var serviceName = req.param('serviceName');
+  var serviceCategory = req.param('serviceCategory');
+  var serviceDescription = req.param('serviceDescription');
+  var priceHr = req.param('priceHr');
+  if (sellerId === undefined || sellerName === undefined) { res.status(404).send(); throw err; };
+
+  var sql = `UPDATE services SET sellerID='${sellerId}', sellerName='${sellerName}', serviceName='${serviceName}', serviceCategory='${serviceCategory}', serviceDescription='${serviceDescription}', priceHr='${priceHr}' WHERE id='${serviceId}'`;
+  
+  console.log(sql);
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    res.json({
+      success: 1
+    })
+    console.log("1 service created");
+    res.status(200).send();
+  });
+});
+
+
 // check if an email is already associated with an account
 router.get('/getEmailExists', function(req, res){
     var email = req.param('email');
@@ -360,6 +386,28 @@ router.get('/signIn', function(req, res){
       firstName: result[0].name,
       id: result[0].id,
     });
+  });
+});
+
+
+// get services
+router.get('/getSellerServicePreviews', function(req, res){
+
+  var id = req.param('id');
+  var sql = `SELECT * FROM services WHERE sellerID='${id}'`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) { res.status(404).send(); throw err; };
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Services Found");
+        return res
+          .status(200)
+          .json({servicePreviews: result});
+
+    } else {
+      console.log("No Services Found");
+    }
   });
 });
 
@@ -533,14 +581,13 @@ router.get('/setSellerAvailability', function(req, res){
   var startHour = req.param('startHour');
   var endHour = req.param('endHour');
   var day = req.param('day');
-  var serviceId = req.param('serviceId');
 
   if (sellerId === undefined 
     //|| serviceId === undefined
     ) { res.status(404).send(); throw err; };
   
-  var sql = `INSERT INTO shifts (sellerID,startHour,endHour,day,serviceId) 
-            VALUES ('${sellerId}', '${startHour}', '${endHour}', '${day}', '${serviceId}')`;
+  var sql = `INSERT INTO shifts (sellerID,startHour,endHour,day) 
+            VALUES ('${sellerId}', '${startHour}', '${endHour}', '${day}')`;
   console.log(sql);
 
   con.query(sql, function (err, result) {
@@ -556,9 +603,8 @@ router.get('/setSellerAvailability', function(req, res){
 router.get('/getSellerAvailability', function(req, res){
 
   var sellerId = req.param('sellerId');
-  var serviceId = req.param('serviceId');
-  if (sellerId === undefined || serviceId === undefined) { res.status(404).send(); throw err; };
-  var sql = `SELECT * FROM shifts WHERE sellerId=${sellerId} AND serviceId=${serviceId}`;
+  if (sellerId === undefined) { res.status(404).send(); throw err; };
+  var sql = `SELECT * FROM shifts WHERE sellerId=${sellerId}`;
   console.log(sql);
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
