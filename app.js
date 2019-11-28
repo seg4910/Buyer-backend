@@ -282,8 +282,10 @@ router.get('/createService', function(req, res) {
   console.log(sql);
   con.query(sql, function (err, result) {
     if (err) { res.status(404).send(); throw err; };
+    //console.log(result)
     res.json({
-      success: 1
+      success: 1,
+      serviceId: result.insertId,
     })
     console.log("1 service created");
     res.status(200).send();
@@ -561,11 +563,12 @@ router.get('/getServiceInfo', function(req, res){
     con.query(sql, function (err, result) {
       if (err) { res.status(404).send(); throw err; };
       if (result[0] !== null && result[0] !== undefined) {
+        console.log(result);
         console.log("Services Found");
           return res
             .status(200)
             .json({
-            serviceInfo: result
+              serviceInfo: result
           });
       } else {
         console.log("No Services Found");
