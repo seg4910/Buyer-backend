@@ -332,14 +332,14 @@ router.get('/createService', function (req, res) {
   var serviceCategory = req.param('serviceCategory');
   var serviceDescription = req.param('serviceDescription');
   var priceHr = req.param('priceHr');
-  var city = req.param('city');
+  var locationId = req.param('locationId');
   if (sellerId === undefined || sellerName === undefined) {
     res.status(404).send();
     throw err;
   };
   var sql = `INSERT INTO services (sellerID,sellerName,serviceName,serviceCategory,serviceDescription,
-    city,priceHr) VALUES ('${sellerId}', '${sellerName}', '${serviceName}', '${serviceCategory}',
-    '${serviceDescription}', '${city}', '${priceHr}')`;
+    locationId,priceHr) VALUES ('${sellerId}', '${sellerName}', '${serviceName}', '${serviceCategory}',
+    '${serviceDescription}', ${locationId}, '${priceHr}')`;
   console.log(sql);
   con.query(sql, function (err, result) {
     if (err) {
@@ -381,8 +381,6 @@ router.get('/updateService', function (req, res) {
     res.json({
       success: 1
     })
-    console.log("1 service created");
-    res.status(200).send();
   });
 });
 
@@ -444,7 +442,8 @@ router.get('/getAccountInfo', function (req, res) {
         img: result[0].img,
         phone: result[0].phone,
         fcmToken: result[0].fcmToken,
-        photo: result[0].photo
+        photo: result[0].photo,
+        locationId: result[0].locationId
       });
     } else {
       console.log("No Account Found.");
@@ -888,6 +887,36 @@ router.get('/getRatings', function (req, res) {
   });
 });
 
+// get location info
+router.get('/getLocation', function (req, res) {
+  var id = req.param('id');
+  if (id === undefined) {
+    res.status(404).send();
+    throw err;
+  };
+  var sql = "SELECT * FROM location WHERE locationId=" + id;
+  con.query(sql, function (err, result) {
+    if (err) {
+      res.status(404).send();
+      throw err;
+    };
+    if (result[0] !== null && result[0] !== undefined) {
+      console.log("Location Found");
+      return res
+        .status(200)
+        .json({
+          locationInfo: result
+        });
+    } else {
+      return res
+        .status(200)
+        .json({
+          locationInfo: null
+        });
+    }
+  });
+});
+
 // add a buyers rating for a seller
 router.post('/addRating', function (req, res) {
   var sellerId = req.param('sellerId');
@@ -922,6 +951,23 @@ router.post('/makePayment', function (req, res) {
       throw err;
     };
     console.log("Field Updated");
+    res.status(200).send();
+  });
+});
+
+
+router.post('/cancelService', function (req, res) {
+  var serviceId = req.param('id');
+
+  var sql = `DELETE FROM services WHERE id=${serviceId}`;
+  console.log(sql);
+
+  con.query(sql, function (err, result) {
+    if (err) {
+      res.status(404).send();
+      throw err;
+    };
+    console.log("Service Cancelled");
     res.status(200).send();
   });
 });
