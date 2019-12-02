@@ -800,10 +800,25 @@ router.get('/getDailyShifts', function (req, res) {
   });
 });
 
+router.get('/deleteShift', function (req, res){
+  const shiftId = req.param('shiftId');
+  const sql = `DELETE FROM shifts WHERE id='${shiftId}'`;
+  console.log(sql);
+  con.query(sql, function (err, result) {
+    if (err) {
+      res.status(404).send();
+      throw err;
+    };
+    return res.status(200).
+      json({
+        success: 1
+      });
+  });
+});
+
 // possible status' : PENDING, ACCEPTED, COMPLETE, DECLINED
 // respondToOrderRequest
 router.post('/respondToRequest', function (req, res) {
-  console.log('here');
   var orderId = req.param('id');
   var resp = req.param('resp');
 
